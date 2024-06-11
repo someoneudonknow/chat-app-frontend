@@ -1,3 +1,4 @@
+import { Message, MessagesUnion } from "./message.model";
 import User from "./user.model";
 
 export enum ConservationRole {
@@ -11,6 +12,11 @@ export enum ConservationType {
   DIRECT_MESSAGE = "DIRECT_MESSAGE",
 }
 
+export type LastMessage = Pick<
+  MessagesUnion,
+  "_id" | "content" | "type" | "sender"
+>;
+
 export interface Conservation {
   _id: string;
   slug?: string;
@@ -19,7 +25,7 @@ export interface Conservation {
   creator: string;
   specialMessages?: [string];
   isStarred: boolean;
-  lastMessage?: string;
+  lastMessage?: LastMessage;
   conservationAttributes?: any;
   type: ConservationType;
 }

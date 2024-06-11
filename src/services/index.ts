@@ -6,6 +6,8 @@ import InterestService from "./InterestService";
 import UploadService from "./UploadService";
 import UserService from "./UserService";
 import ConservationService from "./ConservationService";
+import MessagesService from "./MessagesService";
+import SocketService from "./SocketService";
 
 export {
   BaseService,
@@ -16,4 +18,6 @@ export {
   UploadService,
   UserService,
   ConservationService,
+  MessagesService,
+  SocketService,
 };

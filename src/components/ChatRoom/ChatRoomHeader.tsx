@@ -7,7 +7,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import React from "react";
+import React, { useContext } from "react";
 import SquareTooltipIconButton from "../UIs/SquareTootltipIconButton";
 import { Call, MoreHoriz, VideoCall } from "@mui/icons-material";
 import { motion } from "framer-motion";
@@ -18,6 +18,8 @@ import {
 import { getConservationItemInfo } from "../../utils";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
+import MessageSearchBox from "./MessageSearchBox";
+import { useChatRoom } from "./context/ChatRoomContextProvider";
 
 type ChatRoomHeaderPropsType = {
   conservation: Conservation;
@@ -31,6 +33,7 @@ const ChatRoomHeader: React.FC<ChatRoomHeaderPropsType> = ({
   const currentUserId = useSelector(
     (state: RootState) => state.user.currentUser?._id
   );
+  const chatRoomCtx = useChatRoom();
   const conservationInfo = getConservationItemInfo(conservation, currentUserId);
 
   const getOnlineState = () => {
@@ -61,9 +64,9 @@ const ChatRoomHeader: React.FC<ChatRoomHeaderPropsType> = ({
 
   return (
     <motion.div
+      style={{ position: "relative" }}
       initial={{ y: -40 }}
       animate={{ y: 0 }}
-      // transition={{ ease: "linear", duration: 0.2 }}
     >
       <Paper
         sx={{
@@ -121,6 +124,7 @@ const ChatRoomHeader: React.FC<ChatRoomHeaderPropsType> = ({
           </IconButton>
         </Stack>
       </Paper>
+      {chatRoomCtx.searchMessageShow && <MessageSearchBox />}
     </motion.div>
   );
 };

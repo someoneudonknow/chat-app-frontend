@@ -21,6 +21,10 @@ const Root: React.FC = () => {
   }, [currentUser, currentUser?.lastCompletedUserProfileStep]);
 
   useEffect(() => {
+    console.log("call-api");
+  }, []);
+
+  useEffect(() => {
     switch (toastState.type) {
       case "success":
         toast.success(toastState.message);

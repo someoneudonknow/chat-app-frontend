@@ -5,8 +5,6 @@ import { Box, IconButton, Modal, Slide, Typography } from "@mui/material";
 import UserInterestList from "../UserInterestList";
 import { EditButton } from "../ProfileCard/ProfileCard";
 import { ModeEdit } from "@mui/icons-material";
-import ConfirmDialog from "../ConfirmDialog";
-import { DialogResult } from "../../constants/types";
 import EditInterestForm from "./EditInterestForm";
 
 const EditInterest = () => {

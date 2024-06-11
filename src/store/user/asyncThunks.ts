@@ -1,6 +1,6 @@
 import { parseJWT } from "./../../utils/index";
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { AuthService, UserService } from "../../services";
+import { AuthService, SocketService, UserService } from "../../services";
 import { BASE_URL } from "../../constants/api-endpoints";
 import { errorToast, successToast } from "../toast";
 import { SignInType } from "../../constants/types";
@@ -44,7 +44,8 @@ export const loginWithEmailPassword = createAsyncThunk(
       });
 
       dispatch(successToast("Login successfully"));
-
+      SocketService.emit("user/connected", response.metadata.user._id);
+      SocketService.connect();
       return response;
     } catch (err: any) {
       dispatch(errorToast(err.message));
@@ -78,6 +79,8 @@ export const signup = createAsyncThunk(
       });
 
       dispatch(successToast("Registered successfully"));
+      SocketService.connect();
+      SocketService.emit("user/connected", user.metadata.user._id);
       return user;
     } catch (err: any) {
       dispatch(errorToast(err.message));
@@ -92,10 +95,13 @@ export const logout = createAsyncThunk(
     try {
       const authService = new AuthService(BASE_URL);
       await authService.logout();
+      SocketService.emit("user/disconnected", Cookies.get(CLIENT_ID));
 
       Cookies.remove(REFRESH_TOKEN);
       Cookies.remove(CLIENT_ID);
       Cookies.remove(ACCESS_TOKEN);
+
+      SocketService.disconnect();
     } catch (err: any) {
       return rejectWithValue(err);
     }

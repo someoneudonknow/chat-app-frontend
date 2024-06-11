@@ -1,6 +1,7 @@
 import React, { ReactNode, useEffect, useRef, useState } from "react";
+import { debounce } from "../../utils";
 
-type InfiniteScrollProps = {
+export type InfiniteScrollProps = {
   data: Array<any>;
   fetchNext: () => Promise<any>;
   render: (data: any, index: number) => ReactNode;
@@ -9,6 +10,8 @@ type InfiniteScrollProps = {
   reversed?: boolean;
   hasMore: boolean;
   style?: React.CSSProperties;
+  errorEl?: (err: any) => ReactNode;
+  debounceTimeout?: number;
 };
 
 const InfiniteScroll: React.FC<InfiniteScrollProps> = ({
@@ -19,29 +22,32 @@ const InfiniteScroll: React.FC<InfiniteScrollProps> = ({
   render,
   hasMore,
   style,
+  errorEl,
+  debounceTimeout = 0,
 }) => {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const [error, setError] = useState<any>();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      (entries) => {
+      debounce((entries) => {
         if (entries[0].isIntersecting && hasMore) {
           (async () => {
-            console.log("run this shit");
             try {
               setIsLoading(true);
               await fetchNext();
             } catch (e) {
+              setError(e);
               console.error(e);
             } finally {
               setIsLoading(false);
             }
           })();
         }
-      },
-      { threshold: 0.5 }
+      }, debounceTimeout),
+      { threshold: 0 }
     );
 
     if (bottomRef.current) {
@@ -53,6 +59,7 @@ const InfiniteScroll: React.FC<InfiniteScrollProps> = ({
         observer.unobserve(bottomRef.current);
       }
     };
+    //eslint-disable-next-line
   }, [hasMore, bottomRef, fetchNext, isLoading]);
 
   return (
@@ -68,9 +75,11 @@ const InfiniteScroll: React.FC<InfiniteScrollProps> = ({
         ...style,
       }}
     >
-      {data.map((item, i) => {
-        return render(item, i);
-      })}
+      {error && errorEl && errorEl(error)}
+      {!error &&
+        data.map((item, i) => {
+          return render(item, i);
+        })}
       {isLoading && loadingEl}
       {!isLoading && (
         <div style={{ width: "100%", padding: "0.5px" }} ref={bottomRef}></div>

@@ -15,6 +15,7 @@ import { GroupActions, InboxActions } from "./SideBarActions";
 type ChatRoomSideBarPropsType = {
   show: boolean;
   conservation: Conservation;
+  onSearchBtnClick?: () => void;
 };
 
 const AVT_SIZE = 100;

@@ -7,9 +7,7 @@ import {
   Typography,
 } from "@mui/material";
 import User from "../../models/user.model";
-
 import unknownFlag from "../../assets/images/icon/flag_icon.png";
-import UserOnlineBadge from "../UIs/UserOnlineBadge";
 import Industry from "../../models/industry.model";
 
 type UserContactItemPropsType = {
@@ -24,8 +22,6 @@ const UserContactItem: React.FC<UserContactItemPropsType> = ({
   onItemClick,
   ...rest
 }) => {
-  const avtSize = 70;
-
   return (
     <Paper
       sx={{
@@ -50,9 +46,7 @@ const UserContactItem: React.FC<UserContactItemPropsType> = ({
       onClick={() => onItemClick && onItemClick(data)}
       {...rest}
     >
-      <UserOnlineBadge isOnline={data.isOnline} avtSize={avtSize}>
-        <Avatar src={data?.photo} sx={{ width: `100%`, height: `100%` }} />
-      </UserOnlineBadge>
+      <Avatar src={data?.photo} sx={{ width: `70px`, height: `70px` }} />
       <Stack ml={2} direction="column" sx={{ textAlign: "left" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <Typography variant="h5">{data?.userName || data?.email}</Typography>

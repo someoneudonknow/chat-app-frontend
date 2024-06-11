@@ -2,7 +2,7 @@ import { ICategory } from "@giphy/js-fetch-api";
 import React, { CSSProperties, useState } from "react";
 import { getGiphyCategories } from "../../../utils/api";
 import { InfiniteScroll } from "../../InfiniteScroll";
-import { Box, CircularProgress } from "@mui/material";
+import { Box, CircularProgress, Typography } from "@mui/material";
 import GifCategoryCard from "./GifCategoryCard";
 
 type GifCategoriesListPropsType = {
@@ -32,10 +32,18 @@ const GifCategoriesList: React.FC<GifCategoriesListPropsType> = ({
       }
     } catch (e: any) {
       console.error(e);
+      throw new Error(
+        "Something went wrong while fetching categories. Please try again later."
+      );
     }
   };
   return (
     <InfiniteScroll
+      errorEl={(err) => (
+        <Typography color="error" sx={{ width: "100%", textAlign: "center" }}>
+          {err.message}
+        </Typography>
+      )}
       loadingEl={
         <Box component="div" sx={{ textAlign: "center" }}>
           <CircularProgress size="small" />

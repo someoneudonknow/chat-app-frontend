@@ -2,13 +2,11 @@ import { useDispatch, useSelector } from "react-redux";
 import InterestModel from "../../models/interest.model";
 import React, { useEffect, useState } from "react";
 import { AppDispatch, RootState } from "../../store";
-import { removeDuplicatedWith } from "../../utils";
 import InterestService from "../../services/InterestService";
 import { BASE_URL } from "../../constants/api-endpoints";
 import {
   Box,
   CircularProgress,
-  Divider,
   Grid,
   IconButton,
   Paper,
@@ -17,7 +15,6 @@ import {
 import SearchBoxDebounce from "../SearchBoxDebounce";
 import InterestSuggestion from "../UserProfileFormModal/InterestForm/InterestSuggestion";
 import InterestChip from "../UserProfileFormModal/InterestForm/InterestChip";
-import LoadingButton from "../UIs/LoadingButton";
 import { toast } from "react-toastify";
 import { Close } from "@mui/icons-material";
 import { motion } from "framer-motion";

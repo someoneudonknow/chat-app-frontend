@@ -49,7 +49,7 @@ const GifCategoryCard: React.FC<GifCategoryCardPropsType> = ({
         }}
       >
         <Typography
-          sx={{ textShadow: "0px 0px 40px rgba(0,0,0,0.6)" }}
+          sx={{ textShadow: "0px 0px 40px rgba(0,0,0,0.6)", color: "white" }}
           variant="body1"
         >
           {data.name}

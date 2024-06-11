@@ -1,29 +1,38 @@
 import React, { useState } from "react";
-import { Chip, Paper, Stack } from "@mui/material";
-import { EmojiEmotions, TrendingUp } from "@mui/icons-material";
+import { Chip, Paper, Stack, Typography } from "@mui/material";
+import { Category, EmojiEmotions, TrendingUp } from "@mui/icons-material";
 import { SearchAutoComplete } from "../SearchAutoComplete";
 import { SearchSuggestionDataType } from "../SearchAutoComplete/SearchSuggestion";
-import { getGiphySearchAutoComplete, getTrendingGifs } from "../../utils/api";
+import { getGiphySearchAutoComplete } from "../../utils/api";
 import { ICategory } from "@giphy/js-fetch-api";
-import { IGif } from "@giphy/js-fetch-api";
-
+import { IGif } from "@giphy/js-types";
 import GifCategoriesList from "./GifCategoryCard/GifCategoriesList";
-import GifsMansory from "./GifsMansory";
-import { Grid } from "@giphy/react-components";
 import TrendingGifs from "./TrendingGifs";
+import Emojis from "./Emoji";
+import GifsByKeyword from "./GifsByKeyword";
 
-const GiphyPicker: React.FC = () => {
+type GiphyPickerPropsType = {
+  onGifClick?: (gif: IGif) => void;
+};
+
+const GiphyPicker: React.FC<GiphyPickerPropsType> = ({ onGifClick }) => {
   const [searchLoading, setSearchLoading] = useState<boolean>(false);
   const [giphySuggestions, setGiphySuggestions] =
     useState<SearchSuggestionDataType>([]);
   const [gifsFilter, setGifsFilter] = useState<
-    "categories" | "trendings" | "sticker" | "searchResults"
+    "categories" | "trendings" | "searchResults" | "emojis" | "idle"
   >("categories");
+  const [searchGif, setSearchGif] = useState<string>();
 
   const handleSearchChange = async (value: string) => {
-    if (!value) return;
-
+    if (!value) {
+      if (gifsFilter === "searchResults") {
+        setGifsFilter("categories");
+      }
+      return;
+    }
     setSearchLoading(true);
+
     try {
       const response = await getGiphySearchAutoComplete({
         keyword: value,
@@ -45,25 +54,47 @@ const GiphyPicker: React.FC = () => {
   };
 
   const handleSearchResultClick = (id: any) => {
-    console.log({ id });
+    setSearchGif(id);
+    setGifsFilter("idle");
+
+    setTimeout(() => {
+      setGifsFilter("searchResults");
+    }, 0);
   };
 
   const handleCategoryChoose = (category: ICategory) => {
-    console.log({ category });
+    setSearchGif(category.name);
+    setGifsFilter("idle");
+
+    setTimeout(() => {
+      setGifsFilter("searchResults");
+    }, 0);
   };
 
   const handleTrendingGifsClick = async () => {
     setGifsFilter("trendings");
   };
 
-  const handleEmojisClick = () => {};
+  const handleEmojisClick = () => {
+    setGifsFilter("emojis");
+  };
+
+  const handleCategoryClick = () => {
+    setGifsFilter("categories");
+  };
 
   return (
     <Paper
       sx={{
         p: 1,
-        width: "350px",
-        height: "500px",
+        width: {
+          xs: "250px",
+          md: "450px",
+        },
+        height: {
+          xs: "400px",
+          md: "500px",
+        },
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
@@ -76,16 +107,24 @@ const GiphyPicker: React.FC = () => {
         loading={searchLoading}
         onSuggestionItemClick={handleSearchResultClick}
       />
-      <Stack direction="row" sx={{ mt: 2 }} spacing={1}>
+      <Stack direction="row" sx={{ mt: 2, overflowX: "auto" }} spacing={1}>
+        <Chip
+          onClick={handleCategoryClick}
+          label="All Categories"
+          icon={<Category />}
+          variant={gifsFilter === "categories" ? "filled" : "outlined"}
+        />
         <Chip
           onClick={handleTrendingGifsClick}
           label="Trendings"
           icon={<TrendingUp />}
+          variant={gifsFilter === "trendings" ? "filled" : "outlined"}
         />
         <Chip
           onClick={handleEmojisClick}
           label="Emojis"
           icon={<EmojiEmotions />}
+          variant={gifsFilter === "emojis" ? "filled" : "outlined"}
         />
       </Stack>
       <GifCategoriesList
@@ -100,13 +139,40 @@ const GiphyPicker: React.FC = () => {
         onCategoryChoose={handleCategoryChoose}
       />
       <TrendingGifs
-        columns={2}
+        onGifClick={onGifClick}
+        columns={3}
         style={{
           marginTop: "15px",
           display: gifsFilter === "trendings" ? "flex" : "none",
           flex: 1,
         }}
       />
+      <Emojis
+        onGifClick={onGifClick}
+        columns={6}
+        style={{
+          marginTop: "15px",
+          display: gifsFilter === "emojis" ? "flex" : "none",
+          flex: 1,
+        }}
+      />
+      {searchGif && gifsFilter === "searchResults" && (
+        <>
+          <Typography variant="h5" sx={{ mt: 2, textTransform: "capitalize" }}>
+            {searchGif}
+          </Typography>
+          <GifsByKeyword
+            onGifClick={onGifClick}
+            columns={3}
+            keyword={searchGif || ""}
+            style={{
+              marginTop: "5px",
+              display: "flex",
+              flex: 1,
+            }}
+          />
+        </>
+      )}
     </Paper>
   );
 };

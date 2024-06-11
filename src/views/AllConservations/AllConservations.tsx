@@ -11,6 +11,7 @@ import { RootState } from "../../store";
 import { getConservationItemInfo } from "../../utils";
 import { Outlet, useNavigate } from "react-router-dom";
 import { SELECTED_CONSERVATION_ID } from "../../constants";
+import { Box, CircularProgress } from "@mui/material";
 
 let firstMount = true;
 
@@ -77,11 +78,18 @@ const AllConservation = () => {
         <ConservationSearchHeader sx={{ mb: 1 }} />
         <InfiniteScroll
           style={{ height: "auto" }}
-          loadingEl={<p>Loading...</p>}
+          loadingEl={
+            <Box component="div" sx={{ textAlign: "center" }}>
+              <CircularProgress />
+            </Box>
+          }
+          debounceTimeout={500}
           data={userConservations}
           fetchNext={getNext}
           hasMore={hasMore}
           render={(data: Conservation) => {
+            if (!currentUserId) return <></>;
+
             const conservationItem = getConservationItemInfo(
               data,
               currentUserId

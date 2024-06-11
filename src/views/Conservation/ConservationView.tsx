@@ -1,10 +1,11 @@
 import { useParams } from "react-router-dom";
 import { ChatRoom } from "../../components/ChatRoom";
 import { Conservation } from "../../models/conservation.model";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { ConservationService } from "../../services";
 import { BASE_URL } from "../../constants/api-endpoints";
 import { LinearProgress, Paper } from "@mui/material";
+import ChatRoomContextProvider from "../../components/ChatRoom/context";
 
 const ConservationView = () => {
   const { conservationId } = useParams();
@@ -40,7 +41,9 @@ const ConservationView = () => {
         </Paper>
       )}
       {conservation && !loading && (
-        <ChatRoom conservation={conservation as Conservation} />
+        <ChatRoomContextProvider>
+          <ChatRoom conservation={conservation as Conservation} />
+        </ChatRoomContextProvider>
       )}
     </>
   );

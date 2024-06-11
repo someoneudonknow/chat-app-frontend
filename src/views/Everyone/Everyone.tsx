@@ -42,6 +42,7 @@ const Everyone = () => {
     <ListWrapper>
       <EveryoneSearchHeader />
       <InfiniteScroll
+        debounceTimeout={500}
         loadingEl={
           <Box sx={{ display: "flex", justifyContent: "center" }}>
             <CircularProgress />

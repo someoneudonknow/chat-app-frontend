@@ -1,4 +1,4 @@
-import { GiphyFetch } from "@giphy/js-fetch-api";
+import { GiphyFetch, SearchOptions } from "@giphy/js-fetch-api";
 
 const GIPHY_API_KEY = import.meta.env.VITE_GIFPHY_API_KEY;
 const GIPHY_BASE_URL = import.meta.env.VITE_GIPHY_BASE_URL;
@@ -31,14 +31,12 @@ export const getTrendingGifs = async ({
 
 export const giphySearch = async ({
   keyword,
-  limit = 10,
-  offset,
+  options,
 }: {
   keyword: string;
-  limit: number;
-  offset: number;
+  options: SearchOptions;
 }) => {
-  return await gf.search(keyword, { offset, limit });
+  return await gf.search(keyword, options);
 };
 
 export const getGiphyCategories = async ({
@@ -78,4 +76,22 @@ export const getGiphyTrendingGifs = async ({
   limit: number;
 }) => {
   return await gf.trending({ offset: offset, limit: limit });
+};
+
+export const getGiphyEmojis = async ({
+  offset,
+  limit,
+}: {
+  offset: number;
+  limit: number;
+}) => {
+  return await gf.emoji({ offset: offset, limit: limit });
+};
+
+export const getGiphyByCategory = async ({
+  category,
+}: {
+  category: string;
+}) => {
+  return await gf.gifs([category]);
 };

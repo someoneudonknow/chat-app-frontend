@@ -142,3 +142,7 @@ export type GiphyCategory = {
   subcategories?: GiphySubCategory[];
   gif: GiphyGif;
 };
+
+export type RecognizableFile = {
+  id: string;
+} & File;

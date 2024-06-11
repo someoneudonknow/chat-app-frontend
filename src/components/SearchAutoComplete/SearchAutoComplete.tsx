@@ -1,4 +1,3 @@
-import { Cancel, Search } from "@mui/icons-material";
 import { Box, BoxProps, TextFieldProps } from "@mui/material";
 import { ReactNode, useState } from "react";
 import SearchSuggestion, { SearchSuggestionDataType } from "./SearchSuggestion";
@@ -56,7 +55,12 @@ const SearchAutoComplete: React.FC<SearchAutoCompletePropsType> = ({
           }}
           loading={loading}
           data={suggestions as SearchSuggestionDataType}
-          onSuggestionItemClick={onSuggestionItemClick}
+          onSuggestionItemClick={(id) => {
+            if (onSuggestionItemClick) {
+              onSuggestionItemClick(id);
+              setShowSuggestion(false);
+            }
+          }}
         />
       )}
 

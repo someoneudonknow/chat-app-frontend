@@ -17,10 +17,12 @@ export const USER_RECOMMENDED = "users/recommended";
 export const USER_DISCOVER = "users/discover";
 export const USER_CONTACTS = "users/contacts";
 export const USER_CONSERVATIONS = "users/conservations";
+
 // contacts endpoints
 export const CONTACT_REQUEST = "contact-request";
 export const CONTACT_REQUEST_RECEIVED = "contact-request/received";
 export const CONTACT_REQUEST_SENT = "contact-request/sent";
+
 // interests endpoints
 export const INTEREST = "interests";
 export const SEARCH_INTEREST = "interests/search";
@@ -35,3 +37,7 @@ export const UPLOAD_MANY = "upload/attachments";
 // conservations endpoints
 export const CONSERVATION = "conservations";
 export const JOINED_CONSERVATION = "conservations/joined/all";
+
+// messages endpoints
+export const MESSAGE = "messages";
+export const MESSAGES_IN_CONSERVATION = "messages/conservations";

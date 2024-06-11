@@ -6,6 +6,7 @@ import { Conservation } from "../../../models/conservation.model";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import { useNavigate } from "react-router-dom";
+import { useChatRoom } from "../context/ChatRoomContextProvider";
 
 type InboxActionsPropsType = {
   conservation: Conservation;
@@ -15,6 +16,7 @@ const InboxActions: React.FC<InboxActionsPropsType> = ({ conservation }) => {
   const currentUserId = useSelector(
     (state: RootState) => state.user.currentUser?._id
   );
+  const chatRoomCtx = useChatRoom();
   const navigate = useNavigate();
   const userInfo = conservation.members.find(
     (u) => u.user._id !== currentUserId
@@ -24,6 +26,14 @@ const InboxActions: React.FC<InboxActionsPropsType> = ({ conservation }) => {
     navigate(`/user/discover/${userInfo?.user._id}`);
   };
 
+  const handleOpenSearchMessageBox = () => {
+    if (chatRoomCtx.searchMessageShow) {
+      chatRoomCtx.hideSearchMessageBox();
+    } else {
+      chatRoomCtx.showSearchMessageBox();
+    }
+  };
+
   return (
     <Stack direction="row" justifyContent="space-around">
       <LabelIconButton
@@ -31,7 +41,11 @@ const InboxActions: React.FC<InboxActionsPropsType> = ({ conservation }) => {
         label="View Profile"
         icon={<Visibility />}
       />
-      <LabelIconButton label="Search" icon={<Search />} />
+      <LabelIconButton
+        onClick={handleOpenSearchMessageBox}
+        label="Search"
+        icon={<Search />}
+      />
     </Stack>
   );
 };

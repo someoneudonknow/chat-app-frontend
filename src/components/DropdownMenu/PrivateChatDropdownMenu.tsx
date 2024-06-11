@@ -1,5 +1,5 @@
 import { Menu, MenuItem } from "@mui/material";
-import React, { useId } from "react";
+import React, { MouseEventHandler, useId } from "react";
 import { DropDownMenuPropsType } from "../../constants/interfaces";
 
 const PrivateChatDropdownMenu: React.FC<DropDownMenuPropsType> = ({
@@ -8,6 +8,11 @@ const PrivateChatDropdownMenu: React.FC<DropDownMenuPropsType> = ({
 }) => {
   const menuId = useId();
 
+  const handleMenuItemClick: MouseEventHandler<HTMLLIElement> = (e) => {
+    e.stopPropagation();
+    onClose();
+  };
+
   return (
     <Menu
       anchorEl={anchor}
@@ -15,9 +20,9 @@ const PrivateChatDropdownMenu: React.FC<DropDownMenuPropsType> = ({
       onClose={onClose}
       id={`menu-${menuId}`}
     >
-      <MenuItem onClick={onClose}>Private Chat Feature 1</MenuItem>
-      <MenuItem onClick={onClose}>Private Chat Feature 2</MenuItem>
-      <MenuItem onClick={onClose}>Private Chat Feature 3</MenuItem>
+      <MenuItem onClick={handleMenuItemClick}>Private Chat Feature 1</MenuItem>
+      <MenuItem onClick={handleMenuItemClick}>Private Chat Feature 2</MenuItem>
+      <MenuItem onClick={handleMenuItemClick}>Private Chat Feature 3</MenuItem>
     </Menu>
   );
 };
