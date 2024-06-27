@@ -1,5 +1,5 @@
 import { IconButton, InputAdornment, TextField, Tooltip } from "@mui/material";
-import React, { MouseEvent as ReactMouseEvent, useState } from "react";
+import React, { MouseEvent as ReactMouseEvent, useRef, useState } from "react";
 import EmojiPickerMenu from "../../../EmojiPickerMenu";
 import { EmojiEmotions } from "@mui/icons-material";
 import { FieldValues, useForm } from "react-hook-form";
@@ -19,6 +19,7 @@ const TextChatBar: React.FC<TextChatBarPropsType> = ({
     useState<null | HTMLElement>(null);
   const { handleSubmit, register, resetField, setValue, getValues, setFocus } =
     useForm();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const { containerRef } = useKeyPress({
     registerKeys: [
@@ -27,9 +28,8 @@ const TextChatBar: React.FC<TextChatBarPropsType> = ({
         keys: ["Enter", "Shift"],
         cb: (e: KeyboardEvent) => {
           e.preventDefault();
-          // create new line when press shift enter or enter shift
           const textarea = e.target as HTMLTextAreaElement;
-          const currentCursorPosition = textarea.selectionStart; // get cursor current position
+          const currentCursorPosition = textarea.selectionStart;
           const textBeforeCurrentCursorPos = textarea.value.substring(
             0,
             currentCursorPosition
@@ -68,7 +68,7 @@ const TextChatBar: React.FC<TextChatBarPropsType> = ({
     setFocus("chatInput");
   };
 
-  const handleEmojiSelect = (emojiData: EmojiClickData, _: MouseEvent) => {
+  const handleEmojiSelect = (emojiData: EmojiClickData) => {
     setValue("chatInput", `${getValues("chatInput")}${emojiData.emoji}`);
   };
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Conservation } from "../../models/conservation.model";
 import { Box, CircularProgress, Paper } from "@mui/material";
 import { MessagesList } from "../Messages";
@@ -11,11 +11,10 @@ import AudioChatBar from "./ChatBars/AudioChatBar/AudioChatBar";
 import { MessagesService, UploadService } from "../../services";
 import { BASE_URL } from "../../constants/api-endpoints";
 import { MessageType } from "../../models/message.model";
-
 import { RecognizableFile } from "../../constants/types";
-
 import { toast } from "react-toastify";
 import { SubmitedMessageType } from "./types";
+import { InfiniteScrollRef } from "../InfiniteScroll/InfiniteScroll";
 
 type ChatRoomPropsType = {
   conservation: Conservation;
@@ -26,6 +25,7 @@ const ChatRoom: React.FC<ChatRoomPropsType> = ({ conservation }) => {
   const chatRoomCtx = useChatRoom();
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [nextCursor, setNextCursor] = useState<string | null>();
+  const messageListRef = useRef<InfiniteScrollRef>(null);
 
   useEffect(() => {
     chatRoomCtx.setConservation(conservation);
@@ -40,41 +40,41 @@ const ChatRoom: React.FC<ChatRoomPropsType> = ({ conservation }) => {
       const messageService = new MessagesService(BASE_URL);
       chatRoomCtx.setLoading(true);
 
-      switch (data.type) {
-        case MessageType.TEXT:
-          await messageService.sendTextMessage(
-            conservation._id,
-            data.content as string
-          );
+      try {
+        switch (data.type) {
+          case MessageType.TEXT:
+            await messageService.sendTextMessage(
+              conservation._id,
+              data.content as string
+            );
 
-          break;
-        case MessageType.GIF: {
-          await messageService.sendGifMessage(
-            conservation._id,
-            data.content as IGif
-          );
-          break;
-        }
-        case MessageType.AUDIO: {
-          const uploadService = new UploadService(BASE_URL);
-          const uploadedAudio = await uploadService.uploadOneWithFileData(
-            data.content as Blob
-          );
+            break;
+          case MessageType.GIF: {
+            await messageService.sendGifMessage(
+              conservation._id,
+              data.content as IGif
+            );
+            break;
+          }
+          case MessageType.AUDIO: {
+            const uploadService = new UploadService(BASE_URL);
+            const uploadedAudio = await uploadService.uploadOneWithFileData(
+              data.content as Blob
+            );
 
-          await messageService.sendAudioMessage(
-            conservation._id,
-            data.content as Blob,
-            uploadedAudio.metadata.content
-          );
-          break;
-        }
-        case MessageType.FILE: {
-          const selectedFiles = data.content as (RecognizableFile & {
-            upload: any;
-          })[];
+            await messageService.sendAudioMessage(
+              conservation._id,
+              data.content as Blob,
+              uploadedAudio.metadata.content
+            );
+            break;
+          }
+          case MessageType.FILE: {
+            const selectedFiles = data.content as (RecognizableFile & {
+              upload: any;
+            })[];
 
-          if (selectedFiles && selectedFiles.length > 0) {
-            try {
+            if (selectedFiles && selectedFiles.length > 0) {
               await Promise.all(
                 selectedFiles.map(async (file) => {
                   const uploaded = file.upload.content;
@@ -106,16 +106,16 @@ const ChatRoom: React.FC<ChatRoomPropsType> = ({ conservation }) => {
                   }
                 })
               );
-            } catch (err: any) {
-              toast.error(err.message);
             }
+            break;
           }
-          break;
+          default:
+            return;
         }
-        default:
-          return;
+        messageListRef.current?.scrollToBottom();
+      } catch (err: any) {
+        toast.error(err.message);
       }
-
       chatRoomCtx.setLoading(false);
     },
     [chatRoomCtx, conservation._id]
@@ -176,6 +176,7 @@ const ChatRoom: React.FC<ChatRoomPropsType> = ({ conservation }) => {
               onShowSideBarClick={toggleShowSideBar}
             />
             <MessagesList
+              ref={messageListRef}
               data={chatRoomCtx.messagesList}
               fetchNext={fetchNextMessages}
               hasMore={hasMore}

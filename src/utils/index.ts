@@ -8,7 +8,11 @@ import {
   ConservationRole,
   ConservationType,
 } from "../models/conservation.model";
-import { MessageType, TextMessage } from "../models/message.model";
+import {
+  MessageType,
+  MessagesUnion,
+  TextMessage,
+} from "../models/message.model";
 
 export const parseJWT = (jwt: string) => {
   return JSON.parse(window.atob(jwt.split(".")[1]));
@@ -492,8 +496,36 @@ export const getWeekdayString = (dayNum: number): string => {
     4: "Thursday",
     5: "Friday",
     6: "Saturday",
-    7: "Sunday",
+    0: "Sunday",
   };
 
   return weekdays[dayNum];
+};
+
+export const groupByTimeDuration = <T>(
+  data: T[],
+  timeKey: keyof T,
+  durationInMinutes: number,
+  getKeyName: (data: Date) => string
+) => {
+  if (data.length === 0) return {};
+
+  const result: { [key: string]: T[] } = {};
+
+  for (const item of data) {
+    const date = new Date(item[timeKey] as string);
+    const roundedDate = new Date(
+      Math.floor(date.getTime() / (durationInMinutes * 60 * 1000)) *
+        (durationInMinutes * 60 * 1000)
+    );
+    const key = getKeyName(roundedDate);
+
+    if (!result[key]) {
+      result[key] = [];
+    }
+
+    result[key].push(item);
+  }
+
+  return result;
 };

@@ -1,4 +1,12 @@
-import React, { ReactNode, useEffect, useRef, useState } from "react";
+import React, {
+  ForwardRefExoticComponent,
+  ReactNode,
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import { debounce } from "../../utils";
 
 export type InfiniteScrollProps = {
@@ -14,78 +22,102 @@ export type InfiniteScrollProps = {
   debounceTimeout?: number;
 };
 
-const InfiniteScroll: React.FC<InfiniteScrollProps> = ({
-  data,
-  fetchNext,
-  loadingEl,
-  reversed,
-  render,
-  hasMore,
-  style,
-  errorEl,
-  debounceTimeout = 0,
-}) => {
-  const bottomRef = useRef<HTMLDivElement | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [error, setError] = useState<any>();
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      debounce((entries) => {
-        if (entries[0].isIntersecting && hasMore) {
-          (async () => {
-            try {
-              setIsLoading(true);
-              await fetchNext();
-            } catch (e) {
-              setError(e);
-              console.error(e);
-            } finally {
-              setIsLoading(false);
-            }
-          })();
-        }
-      }, debounceTimeout),
-      { threshold: 0 }
-    );
-
-    if (bottomRef.current) {
-      observer.observe(bottomRef.current);
-    }
-
-    return () => {
-      if (bottomRef.current) {
-        observer.unobserve(bottomRef.current);
-      }
-    };
-    //eslint-disable-next-line
-  }, [hasMore, bottomRef, fetchNext, isLoading]);
-
-  return (
-    <div
-      ref={containerRef}
-      style={{
-        overflowY: "scroll",
-        display: "flex",
-        flexDirection: reversed ? "column-reverse" : "column",
-        justifyContent: "flex-start",
-        alignItems: "center",
-        height: "100%",
-        ...style,
-      }}
-    >
-      {error && errorEl && errorEl(error)}
-      {!error &&
-        data.map((item, i) => {
-          return render(item, i);
-        })}
-      {isLoading && loadingEl}
-      {!isLoading && (
-        <div style={{ width: "100%", padding: "0.5px" }} ref={bottomRef}></div>
-      )}
-    </div>
-  );
+export type InfiniteScrollRef = {
+  scrollToBottom: () => void;
 };
+
+const InfiniteScroll: ForwardRefExoticComponent<InfiniteScrollProps> =
+  forwardRef(
+    (
+      {
+        data,
+        fetchNext,
+        loadingEl,
+        reversed,
+        render,
+        hasMore,
+        style,
+        errorEl,
+        debounceTimeout = 0,
+      },
+      ref
+    ) => {
+      const bottomRef = useRef<HTMLDivElement | null>(null);
+      const [isLoading, setIsLoading] = useState(false);
+      const containerRef = useRef<HTMLDivElement | null>(null);
+      const [error, setError] = useState<any>();
+
+      useImperativeHandle(ref, () => {
+        return {
+          scrollToBottom: () => {
+            containerRef.current?.scrollTo(
+              0,
+              containerRef.current.scrollHeight
+            );
+          },
+        };
+      });
+
+      useEffect(() => {
+        const observer = new IntersectionObserver(
+          debounce((entries) => {
+            if (entries[0].isIntersecting && hasMore) {
+              (async () => {
+                try {
+                  setIsLoading(true);
+                  await fetchNext();
+                } catch (e) {
+                  setError(e);
+                  console.error(e);
+                } finally {
+                  setIsLoading(false);
+                }
+              })();
+            }
+          }, debounceTimeout),
+          { threshold: 0 }
+        );
+
+        if (bottomRef.current) {
+          observer.observe(bottomRef.current);
+        }
+
+        return () => {
+          if (bottomRef.current) {
+            observer.unobserve(bottomRef.current);
+          }
+        };
+        //eslint-disable-next-line
+      }, [hasMore, bottomRef, fetchNext, isLoading]);
+
+      return (
+        <div
+          ref={containerRef}
+          style={{
+            overflowY: "scroll",
+            display: "flex",
+            flexDirection: reversed ? "column-reverse" : "column",
+            justifyContent: "flex-start",
+            alignItems: "center",
+            height: "100%",
+            ...style,
+          }}
+        >
+          {error && errorEl && errorEl(error)}
+          {!error &&
+            data.map((item, i) => {
+              return render(item, i);
+            })}
+          {isLoading && loadingEl}
+          {!isLoading && (
+            <div
+              style={{ width: "100%", padding: "0.5px" }}
+              ref={bottomRef}
+            ></div>
+          )}
+        </div>
+      );
+    }
+  );
 
 export default InfiniteScroll;

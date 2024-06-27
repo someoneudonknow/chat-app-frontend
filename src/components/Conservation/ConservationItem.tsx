@@ -7,7 +7,7 @@ import {
   ListItemText,
   Typography,
 } from "@mui/material";
-import React, { MouseEvent, useId, useState } from "react";
+import React, { MouseEvent, useEffect, useId, useState } from "react";
 import { MoreHoriz } from "@mui/icons-material";
 import { ConservationType } from "../../models/conservation.model";
 import { GroupDropdownMenu, PrivateChatDropdownMenu } from "../DropdownMenu";
@@ -109,9 +109,7 @@ const ConservationItem: React.FC<ConservationItemPropsType> = ({
           <TextOverflowEllipsis
             component="span"
             sx={{
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
+              display: "block",
               color: (theme) =>
                 theme.palette.mode === "dark"
                   ? "rgba(255, 255, 255, 0.5)"

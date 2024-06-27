@@ -71,6 +71,7 @@ const AppThemeProvider: React.FC<AppThemeContextPropsType> = ({ children }) => {
           styles={{
             "*::-webkit-scrollbar": {
               width: "0.3em",
+              height: "0.3em",
             },
             "*::-webkit-scrollbar-thumb": {
               borderRadius: "100vmax",

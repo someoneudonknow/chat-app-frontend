@@ -1,18 +1,30 @@
 import React from "react";
 import { VideoMessagePropsType } from "../types";
-import MessageItemWrapper from "../MessageItemWrapper";
+import { Box } from "@mui/material";
 
-const VideoMessage: React.FC<VideoMessagePropsType> = ({ video, ...rest }) => {
+const VideoMessage: React.FC<VideoMessagePropsType> = ({ video, sx }) => {
   return (
-    <MessageItemWrapper {...rest}>
+    <Box
+      sx={{
+        ...sx,
+        overflow: "hidden",
+        bgcolor: "transparent",
+        display: "flex",
+      }}
+    >
       <video
         controls
         src={video.originalVideo.url}
-        style={{ maxHeight: "200px", borderRadius: "15px" }}
+        style={{
+          height: "200px",
+          flex: 1,
+          objectFit: "cover",
+          objectPosition: "center",
+        }}
       >
         Your browser doesn't support video
       </video>
-    </MessageItemWrapper>
+    </Box>
   );
 };
 

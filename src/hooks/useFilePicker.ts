@@ -53,7 +53,7 @@ const useFilePicker = ({
     return () => {
       fileInputRef.current?.remove();
     };
-  }, [multiple, accept, onChange, validator]);
+  }, [multiple, accept]);
 
   const reValidate = useCallback(() => {
     if (validator) {

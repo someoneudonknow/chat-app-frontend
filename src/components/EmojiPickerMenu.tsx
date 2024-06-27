@@ -40,13 +40,13 @@ const EmojiPickerMenu: React.FC<EmojiPickerMenuPropsType> = memo(
         onClose={onClose}
         disableScrollLock
       >
-        <EmojiPicker
+        {/* <EmojiPicker
           emojiStyle={EmojiStyle.FACEBOOK}
           lazyLoadEmojis
           theme={emojiTheme[theme.palette.mode]}
           onEmojiClick={onEmojiClick}
           {...pickerProps}
-        />
+        /> */}
       </Menu>
     );
   }

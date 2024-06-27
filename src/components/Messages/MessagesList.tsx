@@ -1,160 +1,141 @@
-import { Box, Typography } from "@mui/material";
-import React, { ReactElement, useCallback, useMemo } from "react";
-import MessageItem from "./MessageItem";
-import {
-  AudioMessage,
-  FileMessage,
-  GifMessage,
-  ImageMessage,
-  MessageSender,
-  MessageType,
-  MessagesUnion,
-  Sender,
-  TextMessage,
-  VideoMessage,
-} from "../../models/message.model";
+import { Box, Theme, Typography, useTheme } from "@mui/material";
+import React, { forwardRef, useEffect, useMemo, useRef } from "react";
+import { MessageSender, MessagesUnion } from "../../models/message.model";
 import InfiniteScroll, {
   InfiniteScrollProps,
 } from "../InfiniteScroll/InfiniteScroll";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
-import { MessageItemBaseProps, MessageProps } from "./types";
-import { formatMessageDate, getWeekdayString, groupBy } from "../../utils";
+import {
+  formatMessageDate,
+  getWeekdayString,
+  groupByTimeDuration,
+} from "../../utils";
 import moment from "moment";
+import MessageItemGroup from "./MessageItemGroup";
+import { v4 as uuid } from "uuid";
 
 type MessagesListPropsType = {
   data: MessagesUnion[];
 } & Omit<InfiniteScrollProps, "render">;
 
-const MessagesList: React.FC<MessagesListPropsType> = ({ data, ...rest }) => {
-  const currentUserId = useSelector(
-    (state: RootState) => state.user.currentUser?._id
-  );
+const MessagesList = forwardRef<HTMLDivElement, MessagesListPropsType>(
+  ({ data, ...rest }, ref) => {
+    const theme = useTheme();
+    const currentUserId = useSelector(
+      (state: RootState) => state.user.currentUser?._id
+    );
 
-  const groupedMessages = useMemo(() => {
-    return groupBy<MessagesUnion>(data, (message) => {
-      const sentDate = moment(message.createdAt);
+    const groupedMessages = useMemo(() => {
+      return groupByTimeDuration<MessagesUnion>(
+        data,
+        "createdAt",
+        3,
+        (date) => {
+          const sentDate = moment(date);
 
-      return `${getWeekdayString(sentDate.weekday())}, ${sentDate.format(
-        "DD/MM/YYYY"
-      )}`;
-    });
-  }, [data]);
+          if (sentDate.isSame(new Date(), "days")) {
+            return `${formatMessageDate(date)}`;
+          }
 
-  const isSender = useCallback(
-    (sender: Sender) => (sender as MessageSender)?._id === currentUserId,
-    [currentUserId]
-  );
-
-  const getMessagesItemProps = useCallback(
-    (data: MessagesUnion) => {
-      const messageBaseData: MessageItemBaseProps = {
-        sendAt: data.createdAt,
-        sender: data.sender,
-        align: isSender(data.sender) ? "right" : "left",
-        showMenu: isSender(data.sender),
-      };
-
-      let messageOwnProps: Partial<MessageProps & MessageItemBaseProps> = {
-        ...messageBaseData,
-      };
-
-      switch (data.type) {
-        case MessageType.TEXT: {
-          messageOwnProps = {
-            ...messageOwnProps,
-            type: data.type as MessageType.TEXT,
-            text: (data as TextMessage).content.text,
-          };
-          break;
+          return `${getWeekdayString(sentDate.weekday())}, ${sentDate.format(
+            "DD/MM/YYYY"
+          )} at ${formatMessageDate(date)}`;
         }
-        case MessageType.GIF: {
-          messageOwnProps = {
-            ...messageOwnProps,
-            type: data.type as MessageType.GIF,
-            gif: (data as GifMessage).content,
-          };
-          break;
-        }
-        case MessageType.AUDIO: {
-          messageOwnProps = {
-            ...messageOwnProps,
-            type: data.type as MessageType.AUDIO,
-            audioInfo: (data as AudioMessage).content,
-          };
-          break;
-        }
-        case MessageType.IMAGE: {
-          messageOwnProps = {
-            ...messageOwnProps,
-            type: data.type as MessageType.IMAGE,
-            image: (data as ImageMessage).content,
-          };
-          break;
-        }
-        case MessageType.FILE: {
-          messageOwnProps = {
-            ...messageOwnProps,
-            type: data.type as MessageType.FILE,
-            file: (data as FileMessage).content,
-          };
-          break;
-        }
-        case MessageType.VIDEO: {
-          messageOwnProps = {
-            ...messageOwnProps,
-            type: data.type as MessageType.VIDEO,
-            video: (data as VideoMessage).content,
-          };
-          break;
-        }
-        default:
-          return;
-      }
+      );
+    }, [data]);
 
-      return messageOwnProps;
-    },
-    [isSender]
-  );
+    return (
+      <InfiniteScroll
+        {...rest}
+        ref={ref}
+        style={{ padding: "0px 15px 10px 15px" }}
+        reversed
+        data={Object.keys(groupedMessages)}
+        render={(sentDate: string) => {
+          if (!currentUserId) return null;
+          const messages = [...groupedMessages[sentDate]];
 
-  return (
-    <InfiniteScroll
-      {...rest}
-      reversed
-      data={Object.keys(groupedMessages)}
-      render={(sentDate: string) => {
-        if (!currentUserId) return null;
-        const messages = [...groupedMessages[sentDate]];
+          messages.reverse();
 
-        messages.reverse();
+          const groupedResult: {
+            sender: MessageSender;
+            messages: MessagesUnion[];
+          }[] = [];
 
-        const groupedBySentTime = groupBy<MessagesUnion>(messages, (m) =>
-          formatMessageDate(m.createdAt)
-        );
+          groupedResult.push({
+            sender: messages[0].sender as MessageSender,
+            messages: [messages[0]],
+          });
 
-        return (
-          <Box key={sentDate} sx={{ width: "100%" }}>
-            <Typography variant="body2" sx={{ textAlign: "center" }}>
-              {sentDate}
-            </Typography>
-            {messages.map((data: MessagesUnion) => {
-              const messageOwnProps = getMessagesItemProps(data);
+          for (let i = 1; i < messages.length; i++) {
+            const currentSenderId = (messages[i]?.sender as MessageSender)?._id;
 
-              return (
-                <Box
-                  component="div"
-                  key={data._id}
-                  sx={{ width: "100%", py: 1, px: 1 }}
-                >
-                  {messageOwnProps && <MessageItem props={messageOwnProps} />}
-                </Box>
+            if (
+              currentSenderId ===
+              groupedResult[groupedResult.length - 1].sender._id
+            ) {
+              groupedResult[groupedResult.length - 1].messages.push(
+                messages[i]
               );
-            })}
-          </Box>
-        );
-      }}
-    />
-  );
-};
+            } else {
+              groupedResult.push({
+                sender: messages[i].sender as MessageSender,
+                messages: [messages[i]],
+              });
+            }
+          }
+
+          return (
+            <Box key={sentDate} sx={{ width: "100%" }}>
+              <Typography
+                variant="body2"
+                sx={{ textAlign: "center", fontSize: "13px", my: 3 }}
+              >
+                {sentDate}
+              </Typography>
+              {groupedResult.map((g) => {
+                const isSender = currentUserId === g.sender._id;
+                const align = isSender ? "right" : "left";
+                const borderRadiusEnd = "20px";
+                const borderRadiusStart = "5px";
+                const messageBorderRadius = isSender
+                  ? {
+                      borderTopLeftRadius: borderRadiusEnd,
+                      borderBottomLeftRadius: borderRadiusEnd,
+                      borderTopRightRadius: borderRadiusStart,
+                      borderBottomRightRadius: borderRadiusStart,
+                    }
+                  : {
+                      borderTopRightRadius: borderRadiusEnd,
+                      borderBottomRightRadius: borderRadiusEnd,
+                      borderTopLeftRadius: borderRadiusStart,
+                      borderBottomLeftRadius: borderRadiusStart,
+                    };
+
+                return (
+                  <MessageItemGroup
+                    sx={{
+                      bgcolor: isSender
+                        ? theme.palette.primary[theme.palette.mode]
+                        : theme.palette.secondary[theme.palette.mode],
+                      color: "white",
+                      ...messageBorderRadius,
+                    }}
+                    showAvatar={!isSender}
+                    showUserName={!isSender}
+                    align={align}
+                    sender={g.sender}
+                    messages={g.messages}
+                  />
+                );
+              })}
+            </Box>
+          );
+        }}
+      />
+    );
+  }
+);
 
 export default MessagesList;

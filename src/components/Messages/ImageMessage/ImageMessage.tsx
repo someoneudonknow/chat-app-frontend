@@ -1,19 +1,52 @@
-import React from "react";
+import React, { useState } from "react";
 import { ImageMessagePropsType } from "../types";
-import MessageItemWrapper from "../MessageItemWrapper";
+import { Box } from "@mui/material";
+import Image from "../../UIs/Image";
+import { useChatRoom } from "../../ChatRoom/context/ChatRoomContextProvider";
 
-const ImageMessage: React.FC<ImageMessagePropsType> = ({ image, ...rest }) => {
+const ImageMessage: React.FC<ImageMessagePropsType> = ({
+  image,
+  sx,
+  originalMessage,
+}) => {
+  const [hover, setHover] = useState<boolean>(false);
+  const chatRoomCtx = useChatRoom();
+
+  const handleMessageClick = () => {
+    chatRoomCtx.openImagesGallery(originalMessage._id);
+  };
+
   return (
-    <MessageItemWrapper {...rest}>
-      <img
-        src={image.originalImage.url}
+    <Box
+      component="div"
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onClick={handleMessageClick}
+      sx={{
+        ...sx,
+        bgcolor: "transparent",
+        display: "flex",
+        overflow: "hidden",
+        position: "relative",
+        height: "150px",
+      }}
+    >
+      <div
         style={{
-          maxHeight: "150px",
-          objectFit: "cover",
-          objectPosition: "center",
+          position: "absolute",
+          zIndex: 10,
+          inset: 0,
+          backgroundColor: "rgba(255, 255, 255, 0.1)",
+          transition: "all linear .2s",
+          cursor: "pointer",
+          display: hover ? "block" : "none",
         }}
+      ></div>
+      <Image
+        src={`${image.originalImage.url}`}
+        sx={{ flex: 1, width: "100%" }}
       />
-    </MessageItemWrapper>
+    </Box>
   );
 };
 

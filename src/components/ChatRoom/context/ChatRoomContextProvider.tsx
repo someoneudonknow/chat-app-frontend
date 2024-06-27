@@ -7,8 +7,13 @@ import {
   useState,
 } from "react";
 import { Conservation } from "../../../models/conservation.model";
-import { MessagesUnion } from "../../../models/message.model";
+import {
+  ImageMessage,
+  MessageType,
+  MessagesUnion,
+} from "../../../models/message.model";
 import socket from "../../../services/SocketService";
+import ImagesGallery from "../../ImagesGallery/ImagesGallery";
 
 type ChatRoomContextProviderPropsType = {
   children: ReactNode;
@@ -20,6 +25,7 @@ type ChatRoomState = {
   conservation: Conservation | null;
   messagesList: MessagesUnion[];
   loading: boolean;
+  imagesGalleryShow: boolean;
 };
 
 type ChatRoomContext = {
@@ -29,28 +35,34 @@ type ChatRoomContext = {
   setConservation: (c: Conservation) => void;
   setMessagesList: (messages: MessagesUnion[]) => void;
   setLoading: (loading: boolean) => void;
+  openImagesGallery: (imageIdIndex: MessagesUnion["_id"]) => void;
 } & ChatRoomState;
 
-const initState: ChatRoomContext = {
+const initChatRoomState: ChatRoomState = {
   searchMessageShow: false,
+  imagesGalleryShow: false,
   conservation: null,
   chatBarType: "regular",
   messagesList: [],
   loading: false,
+};
+
+const initState: ChatRoomContext = {
+  ...initChatRoomState,
   showSearchMessageBox: () => {},
   hideSearchMessageBox: () => {},
-  /* eslint-disable */
-  setChatBar: (_: "regular" | "audio") => {},
-  setConservation: (_: Conservation) => {},
-  setMessagesList: (_: MessagesUnion[]) => {},
-  setLoading: (_: boolean) => {},
-  /* eslint-enable */
+  setChatBar: () => {},
+  setConservation: () => {},
+  setMessagesList: () => {},
+  setLoading: () => {},
+  openImagesGallery: () => {},
 };
 
 const chatRoomContext = createContext<ChatRoomContext>(initState);
 
 enum EventName {
   NEW_MESSAGE = "messages/new",
+  TYPING = "messages/typing",
   lEAVE_CONSERVATION = "conservation/leave",
   SETUP_CONSERVATION = "conservation/setup",
 }
@@ -58,13 +70,23 @@ enum EventName {
 const ChatRoomContextProvider: React.FC<ChatRoomContextProviderPropsType> = ({
   children,
 }) => {
-  const [chatRoomState, setChatRoomState] = useState<ChatRoomState>({
-    searchMessageShow: false,
-    chatBarType: "regular",
-    conservation: null,
-    messagesList: [],
-    loading: false,
-  });
+  const [chatRoomState, setChatRoomState] =
+    useState<ChatRoomState>(initChatRoomState);
+  const [imageMessages, setImageMessages] = useState<ImageMessage[]>([]);
+  const [imageIndex, setImageIndex] = useState<number | null>(0);
+
+  useEffect(() => {
+    if (chatRoomState?.messagesList.length > 0) {
+      const images = chatRoomState.messagesList.filter(
+        (message) =>
+          message.type === MessageType.IMAGE &&
+          !imageMessages.find((m) => m._id === message._id)
+      );
+      setImageMessages(images as ImageMessage[]);
+    }
+
+    // eslint-disable-next-line
+  }, [chatRoomState.messagesList]);
 
   useEffect(() => {
     if (!chatRoomState.conservation) return;
@@ -80,6 +102,7 @@ const ChatRoomContextProvider: React.FC<ChatRoomContextProviderPropsType> = ({
 
     return () => {
       socket.off(EventName.NEW_MESSAGE);
+      socket.off(EventName.TYPING);
       socket.emit(
         EventName.lEAVE_CONSERVATION,
         chatRoomState.conservation?._id
@@ -89,11 +112,7 @@ const ChatRoomContextProvider: React.FC<ChatRoomContextProviderPropsType> = ({
 
   const _state = useMemo(
     () => ({
-      searchMessageShow: chatRoomState.searchMessageShow,
-      conservation: chatRoomState.conservation,
-      chatBarType: chatRoomState.chatBarType,
-      messagesList: chatRoomState.messagesList,
-      loading: chatRoomState.loading,
+      ...chatRoomState,
       setMessagesList: (messages: MessagesUnion[]) => {
         setChatRoomState((prev) => ({ ...prev, messagesList: messages }));
       },
@@ -112,19 +131,39 @@ const ChatRoomContextProvider: React.FC<ChatRoomContextProviderPropsType> = ({
       setLoading: (loading: boolean) => {
         setChatRoomState((prev) => ({ ...prev, loading: loading }));
       },
+      openImagesGallery: (imageIdIndex: MessagesUnion["_id"]) => {
+        setChatRoomState((prev) => ({ ...prev, imagesGalleryShow: true }));
+        console.log({
+          i: imageMessages.findIndex((m) => m._id === imageIdIndex),
+        });
+        setImageIndex(imageMessages.findIndex((m) => m._id === imageIdIndex));
+      },
     }),
+    //eslint-disable-next-line
     [
       chatRoomState.chatBarType,
-      chatRoomState.conservation,
-      chatRoomState.searchMessageShow,
       chatRoomState.messagesList,
+      chatRoomState.conservation,
+      chatRoomState.imagesGalleryShow,
       chatRoomState.loading,
+      chatRoomState.searchMessageShow,
+      imageMessages,
     ]
   );
+
+  console.log("chat room ctx re-render");
 
   return (
     <chatRoomContext.Provider value={_state}>
       {children}
+      <ImagesGallery
+        onClose={() =>
+          setChatRoomState((prev) => ({ ...prev, imagesGalleryShow: false }))
+        }
+        index={imageIndex || 0}
+        open={chatRoomState.imagesGalleryShow}
+        images={imageMessages.map((m) => m.content.originalImage.url)}
+      />
     </chatRoomContext.Provider>
   );
 };

@@ -7,6 +7,7 @@ import {
   GifMessage,
   MessageType,
   Sender,
+  MessagesUnion,
 } from "../../../models/message.model";
 
 export type MessageItemBaseProps = {
@@ -14,33 +15,37 @@ export type MessageItemBaseProps = {
   sender: Sender;
   align?: "left" | "right";
   showUserName?: boolean;
-  showMenu: boolean;
-  sendAt: Date;
+  showAvatar?: boolean;
+};
+
+export type MessageBaseProps = {
+  sx?: SxProps;
+  originalMessage: MessagesUnion; //
 };
 
 export type TextMessagePropsType = {
   text: string;
-} & MessageItemBaseProps;
+} & MessageBaseProps;
 
 export type GifMessagePropsType = {
   gif: GifMessage["content"];
-} & MessageItemBaseProps;
+} & MessageBaseProps;
 
 export type AudioMessagePropsType = {
   audioInfo: AudioMessage["content"];
-} & MessageItemBaseProps;
+} & MessageBaseProps;
 
 export type ImageMessagePropsType = {
   image: ImageMessage["content"];
-} & MessageItemBaseProps;
+} & MessageBaseProps;
 
 export type FileMessagePropsType = {
   file: FileMessage["content"];
-} & MessageItemBaseProps;
+} & MessageBaseProps;
 
 export type VideoMessagePropsType = {
   video: VideoMessage["content"];
-} & MessageItemBaseProps;
+} & MessageBaseProps;
 
 export type MessageProps =
   | ({

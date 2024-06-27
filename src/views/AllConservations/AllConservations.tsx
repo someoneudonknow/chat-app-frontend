@@ -10,7 +10,6 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 import { getConservationItemInfo } from "../../utils";
 import { Outlet, useNavigate } from "react-router-dom";
-import { SELECTED_CONSERVATION_ID } from "../../constants";
 import { Box, CircularProgress } from "@mui/material";
 
 let firstMount = true;
@@ -27,7 +26,7 @@ const AllConservation = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedConservation, setSelectedConservation] = useState<
     string | null
-  >(sessionStorage.getItem(SELECTED_CONSERVATION_ID));
+  >(null);
 
   const hasMore = useMemo<boolean>(() => {
     return currentPage <= totalPage;
@@ -37,6 +36,7 @@ const AllConservation = () => {
     if (!selectedConservation && firstMount && userConservations?.length > 0) {
       setSelectedConservation(userConservations[0]._id);
       firstMount = false;
+
       return navigate(
         `/user/chat/all-conservations/${userConservations[0]._id}`
       );
@@ -69,7 +69,6 @@ const AllConservation = () => {
 
   const handleConservationItemClick = (id: string) => {
     setSelectedConservation(id);
-    sessionStorage.setItem(SELECTED_CONSERVATION_ID, id);
   };
 
   return (

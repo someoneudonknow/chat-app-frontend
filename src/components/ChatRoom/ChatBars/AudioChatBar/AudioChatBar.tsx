@@ -1,6 +1,14 @@
 import { useState } from "react";
 import ChatBarAnimationWrapper from "../../../UIs/ChatBarAnimationWrapper";
-import { Box, Button, IconButton, Paper, Stack, Tooltip } from "@mui/material";
+import {
+  Box,
+  Button,
+  IconButton,
+  Paper,
+  Stack,
+  Theme,
+  Tooltip,
+} from "@mui/material";
 import { Delete, RestartAlt, Send } from "@mui/icons-material";
 import { useChatRoom } from "../../context/ChatRoomContextProvider";
 import AudioRecorderBar from "./AudioRecorderBar";
@@ -67,7 +75,13 @@ const AudioChatBar: React.FC<AudioChatBarPropsType> = ({
         )}
         {mode === "preview-recored" && recordedSrc && (
           <WaveFormAudioPlayer
-            sx={{ flex: 1, height: "45px" }}
+            sx={{
+              flex: 1,
+              height: "45px",
+              bgcolor: (theme: Theme) =>
+                theme.palette.containerPrimary &&
+                theme.palette.containerPrimary[theme.palette.mode],
+            }}
             src={recordedSrc}
           />
         )}
