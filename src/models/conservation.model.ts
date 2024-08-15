@@ -17,15 +17,33 @@ export type LastMessage = Pick<
   "_id" | "content" | "type" | "sender"
 >;
 
+export type Group = {
+  groupName: string;
+  groupAvatar?: string;
+  description?: string;
+  memberLimit: number;
+  isPublished: boolean;
+  joinConditions?: any[];
+};
+
+export type Inbox = object;
+
+export type ConservationMember = {
+  user: User;
+  nickname: string;
+  role: ConservationRole;
+};
+
 export interface Conservation {
   _id: string;
   slug?: string;
   theme?: string;
-  members: [{ user: User; nickname: string; role: ConservationRole }];
+  members: ConservationMember[] | string[];
   creator: string;
   specialMessages?: [string];
   isStarred: boolean;
   lastMessage?: LastMessage;
-  conservationAttributes?: any;
+  conservationAttributes?: Group | Inbox;
   type: ConservationType;
+  isCalling?: boolean;
 }

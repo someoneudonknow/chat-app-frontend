@@ -16,44 +16,18 @@ import {
   useTheme,
 } from "@mui/material";
 import { MouseEventHandler, ReactNode, useEffect, useState } from "react";
-import ThemeModeSwitchButton from "./ThemeModeSwitchButton";
 import SquareTooltipIconButton from "./UIs/SquareTootltipIconButton";
 import {
   DialogAction,
   DialogResult,
   LeftSideBarItemName,
 } from "../constants/types";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "../store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../store";
 import ConfirmDialog from "./ConfirmDialog";
 import { logout } from "../store/user/asyncThunks";
 import { SettingMenu } from "./DropdownMenu";
-
-type SideBarItemType = {
-  name: LeftSideBarItemName;
-  title: string;
-  icon: ReactNode;
-  index?: boolean;
-};
-
-const sideBarItems: SideBarItemType[] = [
-  {
-    index: true,
-    name: LeftSideBarItemName.ALL_CONSERVATIONS,
-    title: "All Conservations",
-    icon: <Chat />,
-  },
-  {
-    name: LeftSideBarItemName.EVERYONE,
-    title: "Everyone",
-    icon: <PeopleAlt />,
-  },
-  {
-    name: LeftSideBarItemName.MY_CONTACTS,
-    title: "My Contacts",
-    icon: <RecentActors />,
-  },
-];
+import { setCurrentSidebarItem } from "../store/app/appSlice";
 
 const logoutDialogActions: DialogAction[] = [
   {
@@ -66,39 +40,21 @@ const logoutDialogActions: DialogAction[] = [
   },
 ];
 
-type LeftSideBarProps = {
-  onSideBarItemClicked: (name: LeftSideBarItemName) => void;
-  defaultItem?: string;
-};
-
-const LeftSideBar: React.FC<LeftSideBarProps> = ({
-  onSideBarItemClicked,
-  defaultItem,
-}) => {
+const LeftSideBar: React.FC = () => {
   const theme = useTheme();
-  const [active, setActive] = useState<LeftSideBarItemName | "">(() => {
-    if (defaultItem) {
-      return (
-        sideBarItems.find((sItem) => sItem.name === defaultItem)?.name ?? ""
-      );
-    }
-
-    return sideBarItems.find((sItem) => sItem.index)?.name ?? "";
-  });
   const [settingMenuAnchor, setSettingMenuAnchor] =
     useState<HTMLElement | null>(null);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const dispatch = useDispatch<AppDispatch>();
-
-  useEffect(() => {
-    if (active !== "") {
-      handleSideBarItemClicked(active);
-    }
-  }, []);
+  const sideBarItems = useSelector(
+    (state: RootState) => state.app.sideBarItems
+  );
+  const currentSideBarItem = useSelector(
+    (state: RootState) => state.app.currentSidebarItem
+  );
 
   const handleSideBarItemClicked = (name: LeftSideBarItemName) => {
-    onSideBarItemClicked(name);
-    setActive(name);
+    dispatch(setCurrentSidebarItem(name));
   };
 
   const handleLogoutBtnClick = () => {
@@ -171,12 +127,12 @@ const LeftSideBar: React.FC<LeftSideBarProps> = ({
                   onClick={() => handleSideBarItemClicked(item.name)}
                   sx={{
                     bgcolor:
-                      item.name === active
+                      item.name === currentSideBarItem?.name
                         ? theme.palette.containerSecondary?.main
                         : "",
                     "&:hover": {
                       bgcolor:
-                        item.name === active
+                        item.name === currentSideBarItem?.name
                           ? theme.palette.containerSecondary?.main
                           : "",
                     },

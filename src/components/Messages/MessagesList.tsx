@@ -13,7 +13,6 @@ import {
 } from "../../utils";
 import moment from "moment";
 import MessageItemGroup from "./MessageItemGroup";
-import { v4 as uuid } from "uuid";
 
 type MessagesListPropsType = {
   data: MessagesUnion[];

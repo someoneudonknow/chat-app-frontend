@@ -4,6 +4,7 @@ import {
   DialogActions,
   DialogContent,
   DialogContentText,
+  DialogProps,
   DialogTitle,
   SxProps,
 } from "@mui/material";
@@ -20,7 +21,7 @@ type ConfirmDialogPropsType = {
   actions: DialogAction[];
   open: boolean;
   sx?: SxProps;
-};
+} & DialogProps;
 
 const ConfirmDialog: React.FC<ConfirmDialogPropsType> = ({
   transitionComponent,
@@ -30,6 +31,7 @@ const ConfirmDialog: React.FC<ConfirmDialogPropsType> = ({
   actions,
   open,
   sx,
+  ...rest
 }) => {
   const handleActionItemClick = (resultType: DialogResult) => {
     onConfirm(resultType);
@@ -41,6 +43,7 @@ const ConfirmDialog: React.FC<ConfirmDialogPropsType> = ({
         sx={sx}
         open={open}
         TransitionComponent={transitionComponent || SlideIn}
+        {...rest}
       >
         <DialogTitle>{title || ""}</DialogTitle>
         {bodyContent && (

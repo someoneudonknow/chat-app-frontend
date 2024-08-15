@@ -24,7 +24,7 @@ const Auth: React.FC = () => {
         }}
         item
         md={6}
-        xs={12}
+        xs={0}
       >
         <CoverImage
           src={authBg}

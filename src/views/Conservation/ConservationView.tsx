@@ -22,7 +22,6 @@ const ConservationView = () => {
         const foundConservation = await conservationService.getConservation(
           conservationId
         );
-
         setConservation(foundConservation.metadata as Conservation);
       } catch (err: any) {
         console.error(err);

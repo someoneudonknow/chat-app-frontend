@@ -1,5 +1,5 @@
 import { Box, IconButton, SxProps, Typography } from "@mui/material";
-import React from "react";
+import React, { ReactNode } from "react";
 
 type LabelIconButtonPropsType = {
   icon: ReactNode;

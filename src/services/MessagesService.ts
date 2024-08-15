@@ -25,7 +25,11 @@ class MessagesService extends BaseService {
     super(baseUrl);
   }
 
-  async sendFileMessage(file: File, uploadedFile: any, conservationId: string) {
+  async sendFileMessage(
+    file: File,
+    uploadedFile: any,
+    conservationId: string
+  ): Promise<void> {
     return await this.sendMessage({
       type: MessageType.FILE,
       conservation: conservationId,
@@ -46,7 +50,7 @@ class MessagesService extends BaseService {
     videoFile: File,
     uploadedVideo: any,
     conservationId: string
-  ) {
+  ): Promise<void> {
     const videoBlob = URL.createObjectURL(videoFile);
 
     return await this.sendMessage({
@@ -71,7 +75,7 @@ class MessagesService extends BaseService {
     imageFile: File,
     uploadedImage: any,
     conservationId: string
-  ) {
+  ): Promise<void> {
     const imageMetadata = await getImageMeta(URL.createObjectURL(imageFile));
 
     return await this.sendMessage({
@@ -98,7 +102,7 @@ class MessagesService extends BaseService {
     conservationId: string,
     blob: Blob,
     uploadedAudio: any
-  ) {
+  ): Promise<void> {
     return await this.sendMessage({
       type: MessageType.AUDIO,
       conservation: conservationId,
@@ -114,7 +118,7 @@ class MessagesService extends BaseService {
     } as AudioMessage);
   }
 
-  async sendGifMessage(conservationId: string, gifData: IGif) {
+  async sendGifMessage(conservationId: string, gifData: IGif): Promise<void> {
     return await this.sendMessage({
       type: MessageType.GIF,
       conservation: conservationId,
@@ -128,7 +132,7 @@ class MessagesService extends BaseService {
     } as GifMessage);
   }
 
-  async sendTextMessage(conservationId: string, text: string) {
+  async sendTextMessage(conservationId: string, text: string): Promise<void> {
     return await this.sendMessage({
       type: MessageType.TEXT,
       conservation: conservationId,

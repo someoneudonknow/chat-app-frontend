@@ -1,10 +1,18 @@
 import { IconButton, InputAdornment, TextField, Tooltip } from "@mui/material";
-import React, { MouseEvent as ReactMouseEvent, useRef, useState } from "react";
+import React, {
+  MouseEvent as ReactMouseEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import EmojiPickerMenu from "../../../EmojiPickerMenu";
 import { EmojiEmotions } from "@mui/icons-material";
 import { FieldValues, useForm } from "react-hook-form";
-import { useKeyPress } from "../../../../hooks";
+import { useKeyPress, useSocket } from "../../../../hooks";
 import { EmojiClickData } from "emoji-picker-react";
+import { useChatRoom } from "../../context/ChatRoomContextProvider";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../../store";
 
 type TextChatBarPropsType = {
   emojiCanMount: boolean;
@@ -19,7 +27,28 @@ const TextChatBar: React.FC<TextChatBarPropsType> = ({
     useState<null | HTMLElement>(null);
   const { handleSubmit, register, resetField, setValue, getValues, setFocus } =
     useForm();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [isTyping, setIsTyping] = useState<boolean>(false);
+  const currentUserId = useSelector(
+    (state: RootState) => state.user.currentUser?._id
+  );
+  const { socket } = useSocket();
+  const chatRoomCtx = useChatRoom();
+
+  useEffect(() => {
+    if (!currentUserId || !chatRoomCtx.conservation?._id) return;
+
+    if (isTyping) {
+      socket?.emit("conservation/typing", {
+        userId: currentUserId,
+        conservation: chatRoomCtx.conservation?._id,
+      });
+    } else {
+      socket?.emit("conservation/cancel-typing", {
+        userId: currentUserId,
+        conservation: chatRoomCtx.conservation?._id,
+      });
+    }
+  }, [isTyping, currentUserId, chatRoomCtx.conservation?._id, socket]);
 
   const { containerRef } = useKeyPress({
     registerKeys: [
@@ -109,7 +138,16 @@ const TextChatBar: React.FC<TextChatBarPropsType> = ({
         sx={{ flex: 1 }}
         size="small"
         placeholder="Aa"
-        {...register("chatInput", { required: true })}
+        {...register("chatInput", {
+          required: true,
+          onChange: (e) => {
+            if (e.target.value.trim() !== "") setIsTyping(true);
+            else setIsTyping(false);
+          },
+          onBlur: (e) => {
+            setIsTyping(false);
+          },
+        })}
       />
     </>
   );

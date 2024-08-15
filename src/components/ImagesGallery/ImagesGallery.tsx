@@ -1,9 +1,16 @@
-import React, { memo, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import PortalWrapper from "../PortalWrapper";
-import { Box, IconButton, Typography } from "@mui/material";
-import { Close, NavigateBefore, NavigateNext } from "@mui/icons-material";
+import { Box, IconButton, Stack, Typography } from "@mui/material";
+import {
+  Close,
+  Download,
+  NavigateBefore,
+  NavigateNext,
+} from "@mui/icons-material";
 import { motion, useMotionValue } from "framer-motion";
 import ImagesList from "./ImagesList";
+import { downloadFile } from "../../utils";
+import { v4 as uuid } from "uuid";
 
 type ImagesGalleryPropsType = {
   index?: number;
@@ -27,11 +34,15 @@ const ImagesGallery: React.FC<ImagesGalleryPropsType> = ({
   open,
 }) => {
   const [currentIndex, setCurrentIndex] = useState<number>(index);
-  const [errorImageIndexes, setImageIndexes] = useState<number[]>([]);
+  const [errorImageIndexes, setErrorImageIndexes] = useState<number[]>([]);
   const [dragging, setDragging] = useState<boolean>(false);
   const iconSizes = `${30}px`;
   const dragX = useMotionValue(0);
-  // console.log({ images });
+
+  useEffect(() => {
+    setCurrentIndex(index);
+  }, [index]);
+
   const handleDragStart = () => {
     setDragging(true);
   };
@@ -52,7 +63,7 @@ const ImagesGallery: React.FC<ImagesGalleryPropsType> = ({
   };
 
   const handleImageError = (index: number) => {
-    setImageIndexes((prev) => [...prev, index]);
+    setErrorImageIndexes((prev) => [...prev, index]);
   };
 
   const slideNext = () => {
@@ -79,6 +90,10 @@ const ImagesGallery: React.FC<ImagesGalleryPropsType> = ({
     });
   };
 
+  const handleDownloadCurrentImage = async () => {
+    await downloadFile(images[currentIndex], uuid());
+  };
+
   return (
     <PortalWrapper>
       <Box
@@ -89,17 +104,36 @@ const ImagesGallery: React.FC<ImagesGalleryPropsType> = ({
           position: "fixed",
           zIndex: 1000,
           inset: 0,
-          bgcolor: (theme) => `${theme.palette.secondary.main}59`,
+          bgcolor: (theme) => `${theme.palette.secondary.main}CC`,
         }}
       >
+        <Stack
+          sx={{
+            position: "absolute",
+            zIndex: 1001,
+            left: 20,
+            top: 15,
+          }}
+          spacing={2}
+          direction="row"
+        >
+          <IconButton
+            onClick={handleDownloadCurrentImage}
+            sx={{
+              border: "1px solid white",
+            }}
+          >
+            <Download />
+          </IconButton>
+        </Stack>
         <IconButton
           onClick={onClose}
           sx={{
+            border: "1px solid white",
             position: "absolute",
             zIndex: 1001,
             right: 20,
             top: 15,
-            border: "1px solid white",
           }}
         >
           <Close />
@@ -109,7 +143,7 @@ const ImagesGallery: React.FC<ImagesGalleryPropsType> = ({
             display: "flex",
             flexDirection: "column",
             height: "100%",
-            pt: 1,
+            pt: 5,
           }}
         >
           <Box
@@ -141,12 +175,10 @@ const ImagesGallery: React.FC<ImagesGalleryPropsType> = ({
                       transition={SPRING_OPTIONS}
                       style={{
                         x: dragX,
-                        display: "inline-block",
-                        height: "100%",
+                        maxHeight: "100%",
                         width: "100%",
                         flexShrink: 0,
                         backgroundImage: `url(${url})`,
-
                         backgroundRepeat: "no-repeat",
                         backgroundPosition: "center",
                         backgroundSize: "contain",

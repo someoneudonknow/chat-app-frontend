@@ -84,12 +84,14 @@ const useKeyPress = <E extends HTMLElement>({
       }
     };
 
-    containerRef.current?.addEventListener("keydown", handleKeyDown);
-    containerRef.current?.addEventListener("keyup", handleKeyUp);
+    const cloneRef = containerRef.current;
+
+    cloneRef?.addEventListener("keydown", handleKeyDown);
+    cloneRef?.addEventListener("keyup", handleKeyUp);
 
     return () => {
-      containerRef.current?.removeEventListener("keydown", handleKeyDown);
-      containerRef.current?.removeEventListener("keyup", handleKeyUp);
+      cloneRef?.removeEventListener("keydown", handleKeyDown);
+      cloneRef?.removeEventListener("keyup", handleKeyUp);
     };
   }, [registerKeys, options]);
 

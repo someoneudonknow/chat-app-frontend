@@ -6,7 +6,7 @@ import {
   Radio,
   RadioGroup,
 } from "@mui/material";
-import React, { ChangeEvent, useState } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 
 type RadioButtonGroupPropsType = {
   id: string;
@@ -27,7 +27,13 @@ const RadioButtonGroup: React.FC<RadioButtonGroupPropsType> = ({
   data,
   ...rest
 }) => {
-  const [selected, setSelected] = useState<any>();
+  const [selected, setSelected] = useState<any>(defaultValue);
+
+  useEffect(() => {
+    onCheckChange && onCheckChange(selected);
+
+    //eslint-disable-next-line
+  }, [selected]);
 
   return (
     <FormControl fullWidth {...rest}>
@@ -40,11 +46,10 @@ const RadioButtonGroup: React.FC<RadioButtonGroupPropsType> = ({
         value={selected}
         onChange={(e: ChangeEvent<HTMLInputElement>) => {
           setSelected(e.target.value);
-          onCheckChange && onCheckChange(e.target.value);
         }}
       >
         {data?.map((obj: { label: string; value: any }, i: number) => {
-          let isFocus = selected === defaultValue;
+          const isFocus = selected === defaultValue;
           return (
             <FormControlLabel
               key={i}

@@ -27,9 +27,6 @@ class UserService extends BaseService {
     page: number;
     limit: number;
   }) {
-    console.log({
-      url: `${USER_CONSERVATIONS}/${keyword}?page=${page}&limit=${limit}`,
-    });
     return await this.get(
       `${USER_CONSERVATIONS}/${keyword}?page=${page}&limit=${limit}`,
       {},

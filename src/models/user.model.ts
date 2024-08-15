@@ -2,6 +2,21 @@ import { UserRole, UserStatus } from "../constants/types";
 import Industry from "./industry.model";
 import Interest from "./interest.model";
 
+export type UserContact = Pick<
+  User,
+  | "_id"
+  | "background"
+  | "photo"
+  | "country"
+  | "interests"
+  | "isOnline"
+  | "email"
+  | "birthday"
+  | "gender"
+  | "userName"
+  | "industry"
+>;
+
 export default interface User {
   _id: string;
   userName?: string;
@@ -25,4 +40,5 @@ export default interface User {
   industry?: Industry | string;
   description?: string;
   background?: string;
+  isCalling?: boolean;
 }

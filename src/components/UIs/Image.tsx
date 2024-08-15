@@ -60,7 +60,7 @@ const Image: React.FC<ImagePropsType> = ({
   }
 
   return (
-    <Box component="div" {...rest} sx={{ ...sx, position: "relative" }}>
+    <Box component="div" sx={{ ...sx, position: "relative" }} {...rest}>
       {loading && (
         <Box
           sx={{

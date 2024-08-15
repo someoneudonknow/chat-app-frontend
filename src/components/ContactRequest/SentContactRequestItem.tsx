@@ -78,7 +78,7 @@ const SentContactRequestItem: React.FC<ContactRequestItemPropsType> = ({
   };
 
   return (
-    <ContactRequestCardWrapper gap={GAP} onClick={handleCardClick}>
+    <>
       <ConfirmDialog
         actions={[
           {
@@ -111,58 +111,60 @@ const SentContactRequestItem: React.FC<ContactRequestItemPropsType> = ({
         title="Edit contact request"
         onConfirm={handleConfirm}
       />
-      <Avatar
-        src={(data.receiver as Partial<User>).photo}
-        sx={{
-          width: `100%`,
-          height: `212px`,
-          borderRadius: 2,
-        }}
-      />
-      <Stack
-        direction="column"
-        sx={{ width: "100%", mt: "auto", position: "relative" }}
-      >
-        <TextOverflowEllipsis
-          variant="h5"
+      <ContactRequestCardWrapper gap={GAP} onClick={handleCardClick}>
+        <Avatar
+          src={(data.receiver as Partial<User>).photo}
           sx={{
-            oveflow: "hidden",
-            whiteSpace: "nowrap",
-            textOverflow: "ellipsis",
+            width: `100%`,
+            height: `212px`,
+            borderRadius: 2,
           }}
+        />
+        <Stack
+          direction="column"
+          sx={{ width: "100%", mt: "auto", position: "relative" }}
         >
-          {(data.receiver as Partial<User>).userName ||
-            (data.receiver as Partial<User>).email}
-        </TextOverflowEllipsis>
-        <Tooltip title="Edit request message">
           <TextOverflowEllipsis
-            onClick={handleEditBtnClicked}
+            variant="h5"
             sx={{
-              letterSpacing: 1,
-              "&:hover": {
-                opacity: 0.7,
-              },
+              oveflow: "hidden",
+              whiteSpace: "nowrap",
+              textOverflow: "ellipsis",
             }}
-            color="secondary"
           >
-            {data.requestMessage}
+            {(data.receiver as Partial<User>).userName ||
+              (data.receiver as Partial<User>).email}
           </TextOverflowEllipsis>
-        </Tooltip>
-      </Stack>
-      <Stack direction="column" spacing={1} sx={{ mt: 3 }}>
-        <Button
-          disabled={loading}
-          onClick={(e) => {
-            e.stopPropagation();
-            onCancelClick && onCancelClick(data._id);
-          }}
-          variant="contained"
-          color="error"
-        >
-          Cancel
-        </Button>
-      </Stack>
-    </ContactRequestCardWrapper>
+          <Tooltip title="Edit request message">
+            <TextOverflowEllipsis
+              onClick={handleEditBtnClicked}
+              sx={{
+                letterSpacing: 1,
+                "&:hover": {
+                  opacity: 0.7,
+                },
+              }}
+              color="secondary"
+            >
+              {data.requestMessage}
+            </TextOverflowEllipsis>
+          </Tooltip>
+        </Stack>
+        <Stack direction="column" spacing={1} sx={{ mt: 3 }}>
+          <Button
+            disabled={loading}
+            onClick={(e) => {
+              e.stopPropagation();
+              onCancelClick && onCancelClick(data._id);
+            }}
+            variant="contained"
+            color="error"
+          >
+            Cancel
+          </Button>
+        </Stack>
+      </ContactRequestCardWrapper>
+    </>
   );
 };
 

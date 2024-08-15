@@ -15,7 +15,7 @@ const ProfilePageLayout: React.FC<ProfilePageLayoutPropsType> = ({
   const navigate = useNavigate();
 
   const handleBackBtnClicked = () => {
-    navigate("/user/chat/all-conservations");
+    navigate(-1);
   };
 
   return (

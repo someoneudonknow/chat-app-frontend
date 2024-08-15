@@ -9,6 +9,8 @@ import { ToastContainer } from "react-toastify";
 import { useTheme } from "@mui/material";
 import { Bounce } from "react-toastify";
 import User from "./User/User";
+import { initStateWithPrevTab } from "redux-state-sync";
+import store from "../store";
 
 const LoginView = lazy(() =>
   import("../components/LoginForm").then((module) => ({
@@ -69,10 +71,14 @@ const ConservationView = lazy(() =>
     default: module.ConservationView,
   }))
 );
+const CallView = lazy(() =>
+  import("./Call").then((module) => ({
+    default: module.Call,
+  }))
+);
 
 function App() {
   const theme = useTheme();
-
   return (
     <>
       <ToastContainer
@@ -102,6 +108,14 @@ function App() {
 
             <Route path="user" element={<User />}>
               <Route index element={<Navigate to="chat" />} />
+              <Route
+                path="call"
+                element={
+                  <ProtectedRoute>
+                    <CallView />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="profile"
                 element={
@@ -136,7 +150,6 @@ function App() {
                 <Route path="my-contacts" element={<MyContacts />} />
               </Route>
             </Route>
-            <Route path="admin" />
             <Route path="*" element={<ErrorView />} />
           </Route>
         </Routes>

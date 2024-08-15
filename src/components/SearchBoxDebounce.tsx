@@ -19,6 +19,7 @@ interface SearchBoxDebouncePropsType {
     "onChange" | "ref" | "helperText" | "onBlur"
   >;
   sx?: SxProps;
+  noIcon?: boolean;
 }
 
 const SearchBoxDebounce: React.FC<SearchBoxDebouncePropsType> = ({
@@ -27,6 +28,7 @@ const SearchBoxDebounce: React.FC<SearchBoxDebouncePropsType> = ({
   validationRules,
   inputProps,
   sx,
+  noIcon,
 }) => {
   const { control, setValue, handleSubmit, watch } = useForm({
     mode: "onChange",
@@ -70,6 +72,7 @@ const SearchBoxDebounce: React.FC<SearchBoxDebouncePropsType> = ({
       rules={validationRules}
       render={({ field, fieldState }) => (
         <TextField
+          size="small"
           {...inputProps}
           sx={sx}
           onBlur={field.onBlur}
@@ -77,15 +80,9 @@ const SearchBoxDebounce: React.FC<SearchBoxDebouncePropsType> = ({
           error={!!fieldState?.error}
           helperText={fieldState.error ? fieldState.error.message : null}
           onChange={field.onChange}
-          size="small"
           value={field.value}
           fullWidth
           InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search />
-              </InputAdornment>
-            ),
             endAdornment: (
               <InputAdornment
                 sx={{ cursor: "pointer" }}
@@ -111,6 +108,13 @@ const SearchBoxDebounce: React.FC<SearchBoxDebouncePropsType> = ({
                 </AnimatePresence>
               </InputAdornment>
             ),
+            ...(!noIcon && {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              ),
+            }),
           }}
         />
       )}

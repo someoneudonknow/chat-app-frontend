@@ -1,5 +1,6 @@
 import { ButtonProps, SxProps } from "@mui/material";
 import { ConservationType } from "../../models/conservation.model";
+import { CallMediaType } from "../../models/call.model";
 
 export enum LeftSideBarItemName {
   ALL_CONSERVATIONS = "all-conservation",
@@ -72,6 +73,7 @@ export type ConservationItemType = {
   name: string;
   lastMessage?: string;
   cover?: string | (string | null)[] | null;
+  isOnline?: boolean;
 };
 
 // giphy types
@@ -146,3 +148,25 @@ export type GiphyCategory = {
 export type RecognizableFile = {
   id: string;
 } & File;
+
+export type IncommingCallInfo = {
+  from: string;
+  avatar: string[];
+  mediaType: CallMediaType;
+  callId: string;
+  channelName: string;
+  callerId: string;
+};
+
+export enum CallEventName {
+  SETUP = "calls/setup",
+  CREATE_CALL = "calls/created",
+  NEW_CALL_ARRIVED = "calls/new",
+  CALL_END = "calls/end",
+  ALL_CALLEES_REJECTS = "calls/rejected/all",
+  CALL_REJECT = "calls/rejected",
+  CALL_REJECTED = "calls/users/rejected",
+  CALLEE_JOINED = "calls/users/joined",
+  CALLEE_LEFT = "calls/users/left",
+  CALLEE_LEAVE = "calls/leave",
+}

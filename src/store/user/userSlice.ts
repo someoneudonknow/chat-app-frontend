@@ -17,19 +17,11 @@ import User from "../../models/user.model";
 
 type UserStateType = {
   currentUser: User | null;
-  auth: {
-    accessToken: string | null;
-    refreshToken: string | null;
-  };
   isLoading: boolean;
 };
 
 const initialValue: UserStateType = {
   currentUser: null,
-  auth: {
-    accessToken: null,
-    refreshToken: Cookie.get(REFRESH_TOKEN) || null,
-  },
   isLoading: false,
 };
 
@@ -38,8 +30,6 @@ const userSlice = createSlice({
   initialState: initialValue,
   reducers: {
     resetAuthState: (state) => {
-      state.auth.accessToken = null;
-      state.auth.refreshToken = null;
       state.currentUser = null;
     },
   },
@@ -50,8 +40,6 @@ const userSlice = createSlice({
       })
       .addCase(loginWithEmailPassword.fulfilled, (state, { payload }) => {
         state.currentUser = payload.metadata.user;
-        state.auth.accessToken = payload.metadata.tokens.accessToken;
-        state.auth.refreshToken = payload.metadata.tokens.refreshToken;
         state.isLoading = false;
       })
       .addCase(loginWithEmailPassword.rejected, (state) => {
@@ -64,8 +52,6 @@ const userSlice = createSlice({
       })
       .addCase(signup.fulfilled, (state, { payload }) => {
         state.currentUser = payload.metadata.user;
-        state.auth.accessToken = payload.metadata.tokens.accessToken;
-        state.auth.refreshToken = payload.metadata.tokens.refreshToken;
         state.isLoading = false;
       })
       .addCase(signup.rejected, (state) => {
@@ -79,8 +65,6 @@ const userSlice = createSlice({
       .addCase(logout.fulfilled, (state) => {
         state.isLoading = false;
         state.currentUser = null;
-        state.auth.accessToken = null;
-        state.auth.refreshToken = null;
       })
       .addCase(logout.rejected, (state) => {
         state.isLoading = false;
@@ -90,9 +74,7 @@ const userSlice = createSlice({
       .addCase(refreshToken.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(refreshToken.fulfilled, (state, { payload }) => {
-        state.auth.accessToken = payload.metadata.tokens.accessToken;
-        state.auth.refreshToken = payload.metadata.tokens.refreshToken;
+      .addCase(refreshToken.fulfilled, (state) => {
         state.isLoading = false;
       })
       .addCase(refreshToken.rejected, (state) => {

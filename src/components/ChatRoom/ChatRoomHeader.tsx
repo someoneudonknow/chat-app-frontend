@@ -7,7 +7,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import React, { useContext } from "react";
+import React, { useContext, useMemo } from "react";
 import SquareTooltipIconButton from "../UIs/SquareTootltipIconButton";
 import { Call, MoreHoriz, VideoCall } from "@mui/icons-material";
 import { motion } from "framer-motion";
@@ -20,11 +20,20 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 import MessageSearchBox from "./MessageSearchBox";
 import { useChatRoom } from "./context/ChatRoomContextProvider";
+import { CallService } from "../../services";
+import { BASE_URL } from "../../constants/api-endpoints";
+import { useSocket } from "../../hooks";
+import { CallEventName, IncommingCallInfo } from "../../constants/types";
+import { ConservationItem } from "../Conservation";
+import { toast } from "react-toastify";
+import { useCall } from "../../contexts/CallContext";
 
 type ChatRoomHeaderPropsType = {
   conservation: Conservation;
   onShowSideBarClick?: () => void;
 };
+
+const callService = new CallService(BASE_URL);
 
 const ChatRoomHeader: React.FC<ChatRoomHeaderPropsType> = ({
   conservation,
@@ -33,10 +42,12 @@ const ChatRoomHeader: React.FC<ChatRoomHeaderPropsType> = ({
   const currentUserId = useSelector(
     (state: RootState) => state.user.currentUser?._id
   );
+  const { socket } = useSocket();
   const chatRoomCtx = useChatRoom();
   const conservationInfo = getConservationItemInfo(conservation, currentUserId);
+  const { startCall } = useCall();
 
-  const getOnlineState = () => {
+  const onlineState = useMemo<string>(() => {
     switch (conservation.type) {
       case ConservationType.INBOX: {
         const isUserOnline = conservation.members.find(
@@ -59,6 +70,78 @@ const ChatRoomHeader: React.FC<ChatRoomHeaderPropsType> = ({
       }
       default:
         return "Offline";
+    }
+  }, [conservation, currentUserId]);
+
+  const handleVoiceCallClick = async () => {
+    try {
+      const { status, metadata } = await callService.initCall({
+        conservationId: conservation._id,
+        mediaType: "AUDIO_CALL",
+      });
+
+      if (status === 200) {
+        const { call, channel, rtcToken, rtmToken, rtcUid, rtmUid } = metadata;
+
+        socket?.emit(CallEventName.CREATE_CALL, {
+          conservationId: conservation._id,
+          callerId: currentUserId,
+          from: conservationInfo?.name,
+          avatar: conservationInfo?.cover,
+          callId: call._id,
+          channelName: channel,
+          mediaType: call.mediaType,
+        });
+
+        startCall({
+          callId: call._id,
+          rtcToken,
+          rtmToken,
+          channel,
+          rtcUid,
+          rtmUid,
+          mediaType: call.mediaType,
+          type: call.type,
+        });
+      }
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  const handleVideoCallClick = async () => {
+    try {
+      const { status, metadata } = await callService.initCall({
+        conservationId: conservation._id,
+        mediaType: "VIDEO_CALL",
+      });
+
+      if (status === 200) {
+        const { call, channel, rtcToken, rtmToken, rtcUid, rtmUid } = metadata;
+
+        socket?.emit(CallEventName.CREATE_CALL, {
+          conservationId: conservation._id,
+          callerId: currentUserId,
+          from: conservationInfo?.name,
+          avatar: conservationInfo?.cover,
+          callId: call._id,
+          channelName: channel,
+          mediaType: call.mediaType,
+        });
+
+        startCall({
+          callId: call._id,
+          rtcToken,
+          rtmToken,
+          channel,
+          rtcUid,
+          rtmUid,
+          mediaType: call.mediaType,
+          type: call.type,
+        });
+      }
+    } catch (e: any) {
+      toast.error(e.message);
     }
   };
 
@@ -94,8 +177,15 @@ const ChatRoomHeader: React.FC<ChatRoomHeaderPropsType> = ({
             <Typography sx={{ fontSize: "18px" }}>
               {conservationInfo?.name}
             </Typography>
-            <Typography variant="body2" sx={{ fontSize: "13px" }}>
-              {getOnlineState()}
+            <Typography
+              variant="body2"
+              sx={{
+                fontSize: "13px",
+                color: (theme) =>
+                  onlineState !== "Offline" ? theme.palette.success.main : "",
+              }}
+            >
+              {onlineState}
             </Typography>
           </Box>
         </Box>
@@ -105,10 +195,12 @@ const ChatRoomHeader: React.FC<ChatRoomHeaderPropsType> = ({
             sx={{ borderRadius: "50%", aspectRatio: 1 / 1 }}
             title="Audio call"
             color="info"
+            onClick={handleVoiceCallClick}
           >
             <Call />
           </SquareTooltipIconButton>
           <SquareTooltipIconButton
+            onClick={handleVideoCallClick}
             placement="bottom"
             sx={{ borderRadius: "50%", aspectRatio: 1 / 1 }}
             title="Video call"

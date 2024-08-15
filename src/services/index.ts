@@ -7,9 +7,10 @@ import UploadService from "./UploadService";
 import UserService from "./UserService";
 import ConservationService from "./ConservationService";
 import MessagesService from "./MessagesService";
-import SocketService from "./SocketService";
+import CallService from "./CallService";
 
 export {
+  CallService,
   BaseService,
   AuthService,
   ContactService,
@@ -19,5 +20,4 @@ export {
   UserService,
   ConservationService,
   MessagesService,
-  SocketService,
 };

@@ -1,70 +1,140 @@
-import { SxProps } from "@mui/material";
+import { Box, IconButton, SxProps } from "@mui/material";
 import React, { useState } from "react";
 import { SearchAutoComplete } from "../../components/SearchAutoComplete";
 import PrimaryHeader from "../../components/PrimaryHeader";
-import { UserService } from "../../services";
+import { ConservationService, UserService } from "../../services";
 import { BASE_URL } from "../../constants/api-endpoints";
-import { Conservation } from "../../models/conservation.model";
+import {
+  Conservation,
+  ConservationType,
+  Group,
+} from "../../models/conservation.model";
 import ConservationSuggestions from "../../components/Conservation/ConservationSuggestions";
-import { useSelector } from "react-redux";
-import { RootState } from "../../store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../../store";
 import { getConservationItemInfo } from "../../utils";
+import { ConservationItemType } from "../../constants/types";
+import { useNavigate } from "react-router-dom";
+import { ModeEdit } from "@mui/icons-material";
+import CreateGroupModal from "../../components/CreateGroupModal";
+import { addConservation } from "../../store/userConservation";
 
 type ConservationSearchHeaderPropsType = {
   sx?: SxProps;
 };
 
+const PAGE = 1;
+const LIMIT = 7;
+const MEMBER_LIMIT = 100;
+
+const userService = new UserService(BASE_URL);
+const conservationService = new ConservationService(BASE_URL);
+
 const ConservationSearchHeader: React.FC<ConservationSearchHeaderPropsType> = ({
   sx,
 }) => {
-  const [suggestion, setSuggestion] = useState<(ConservationItem | null)[]>([]);
+  const [suggestion, setSuggestion] = useState<ConservationItemType[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const currentUserId = useSelector(
     (state: RootState) => state.user.currentUser?._id
   );
+  const [createGroupModal, setCreateGroupModal] = useState<boolean>(false);
+  const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
 
   const handleSearchChange = async (value: string) => {
     if (value === "") return;
 
     try {
       setLoading(true);
-      const userService = new UserService(BASE_URL);
 
       const result = await userService.searchConservations({
         keyword: value,
-        page: 1,
-        limit: 7,
+        page: PAGE,
+        limit: LIMIT,
       });
 
-      setSuggestion(
-        (result.metadata.list as Conservation[]).map((c) =>
-          getConservationItemInfo(c, currentUserId)
-        )
-      );
+      if (currentUserId) {
+        setSuggestion(() => {
+          const conservations: ConservationItemType[] = [];
+
+          (result.metadata.list as Conservation[]).forEach((c) => {
+            const conserInfo = getConservationItemInfo(c, currentUserId);
+
+            if (conserInfo !== null) {
+              conservations.push(conserInfo);
+            }
+          });
+
+          return conservations;
+        });
+      }
     } catch (err: any) {
       console.error(err);
     }
     setLoading(false);
   };
 
+  const handleOpenCreateGroupModal = () => {
+    setCreateGroupModal(true);
+  };
+
+  const handleCreateGroup = async (
+    newGroup: Partial<Group> & { members: string[] }
+  ) => {
+    try {
+      const createdGroup = await conservationService.createConservation({
+        type: ConservationType.GROUP,
+        members: newGroup.members,
+        conservationAttributes: {
+          groupName: newGroup.groupName,
+          isPublished: newGroup.isPublished,
+          description: newGroup.description,
+          memberLimit: MEMBER_LIMIT,
+        },
+      });
+
+      dispatch(addConservation(createdGroup.metadata));
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   const handleConservationItemClick = (id: string) => {
-    console.log({ id });
+    navigate(`/user/chat/all-conservations/${id}`);
   };
 
   return (
-    <PrimaryHeader title="All Conservations">
-      <SearchAutoComplete
-        loading={loading}
-        suggestions={
-          <ConservationSuggestions
-            loading={loading}
-            data={suggestion}
-            onSuggestionItemClick={handleConservationItemClick}
-          />
-        }
-        onSearchChange={handleSearchChange}
+    <>
+      <CreateGroupModal
+        onCreate={handleCreateGroup}
+        open={createGroupModal}
+        handleClose={() => setCreateGroupModal(false)}
       />
-    </PrimaryHeader>
+      <PrimaryHeader
+        sx={{ display: "flex", flexWrap: "wrap", ...sx }}
+        title="All Conservations"
+      >
+        <Box sx={{ flex: 1, textAlign: "right" }}>
+          <IconButton onClick={handleOpenCreateGroupModal}>
+            <ModeEdit />
+          </IconButton>
+        </Box>
+        <Box sx={{ width: "100%" }}>
+          <SearchAutoComplete
+            loading={loading}
+            suggestions={
+              <ConservationSuggestions
+                loading={loading}
+                data={suggestion}
+                onSuggestionItemClick={handleConservationItemClick}
+              />
+            }
+            onSearchChange={handleSearchChange}
+          />
+        </Box>
+      </PrimaryHeader>
+    </>
   );
 };
 

@@ -5,6 +5,7 @@ import { Crop } from "react-image-crop";
 import { ConservationItemType, Gender } from "../constants/types";
 import {
   Conservation,
+  ConservationMember,
   ConservationRole,
   ConservationType,
 } from "../models/conservation.model";
@@ -186,10 +187,7 @@ const getLastMessage = (
       break;
   }
 
-  if (
-    conservation.lastMessage &&
-    conservation.lastMessage.sender === currentUserId
-  ) {
+  if (conservation?.lastMessage?.sender === currentUserId) {
     lastMessage = "You: " + lastMessage;
   }
 
@@ -203,7 +201,8 @@ export const getConservationItemInfo = (
   if (conservation.type === ConservationType.INBOX) {
     const member = conservation.members.find(
       (member) => member.user._id !== currentUserId
-    );
+    ) as ConservationMember;
+
     const memberUserInfo = member?.user;
 
     if (!member)
@@ -218,12 +217,17 @@ export const getConservationItemInfo = (
         memberUserInfo?.userName ||
         memberUserInfo?.email ||
         "Haven't provided any name",
+      isOnline: memberUserInfo.isOnline,
       lastMessage: getLastMessage(conservation, currentUserId),
     };
   } else if (conservation.type === ConservationType.GROUP) {
     const covers = conservation.members.map((m) => m.user?.photo || null);
     const creator = conservation.members.find(
       (m) => m.role === ConservationRole.HOST
+    );
+    const onlineCount = conservation.members.reduce(
+      (a, m) => ((m as ConservationMember).user?.isOnline ? a + 1 : a),
+      0
     );
     const name =
       conservation?.conservationAttributes?.groupName ||
@@ -235,7 +239,8 @@ export const getConservationItemInfo = (
       type: conservation.type,
       creator: conservation.creator,
       cover: covers,
-      name: `${name}'s group`,
+      name,
+      isOnline: onlineCount > 2,
       lastMessage: getLastMessage(conservation, currentUserId),
     };
   }
@@ -281,10 +286,8 @@ export const mapPercentage = (
   toMin: number,
   toMax: number
 ): number => {
-  // Calculate the percentage of the from value
   const fromPercentage = (fromValue - fromMin) / (fromMax - fromMin);
 
-  // Calculate the new value based on the percentage and the to min/max
   const toValue = toMin + (toMax - toMin) * fromPercentage;
 
   return toValue;
@@ -528,4 +531,16 @@ export const groupByTimeDuration = <T>(
   }
 
   return result;
+};
+
+export const moveElement = <T>(
+  originalArray: Array<T>,
+  fromIndex: number,
+  toIndex: number
+): void => {
+  if (originalArray.length === 0) return;
+  const el: T = originalArray[fromIndex];
+
+  originalArray.splice(fromIndex, 1);
+  originalArray.splice(toIndex, 0, el);
 };

@@ -1,6 +1,12 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  LegacyRef,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Conservation } from "../../models/conservation.model";
-import { Box, CircularProgress, Paper } from "@mui/material";
+import { Box, CircularProgress, Paper, Typography } from "@mui/material";
 import { MessagesList } from "../Messages";
 import ChatRoomSideBar from "./ChatRoomSideBar";
 import ChatRoomHeader from "./ChatRoomHeader";
@@ -15,6 +21,9 @@ import { RecognizableFile } from "../../constants/types";
 import { toast } from "react-toastify";
 import { SubmitedMessageType } from "./types";
 import { InfiniteScrollRef } from "../InfiniteScroll/InfiniteScroll";
+import MessageLoader from "../UIs/MessageLoader";
+import UserIsTypingAnimation from "../UIs/UserIsTypingAnimation";
+import User from "../../models/user.model";
 
 type ChatRoomPropsType = {
   conservation: Conservation;
@@ -159,6 +168,30 @@ const ChatRoom: React.FC<ChatRoomPropsType> = ({ conservation }) => {
     }
   }, [chatRoomCtx, nextCursor]);
 
+  const getTypingStateText = (): string => {
+    const typingMembers = chatRoomCtx.typingMembers;
+
+    if (typingMembers.length > 0) {
+      const firstMember = chatRoomCtx.conservation?.members.find(
+        (m) => m.user._id === typingMembers[0]
+      );
+      const firstMemberName =
+        firstMember?.nickname ??
+        firstMember?.user.userName ??
+        firstMember?.user.email;
+
+      if (typingMembers.length > 1) {
+        return `${firstMemberName} and ${
+          typingMembers.length - 1
+        } others is tying`;
+      } else {
+        return `${firstMemberName} is tying`;
+      }
+    }
+
+    return "";
+  };
+
   return (
     <Paper sx={{ flex: 1, display: "flex" }}>
       <Box
@@ -181,20 +214,13 @@ const ChatRoom: React.FC<ChatRoomPropsType> = ({ conservation }) => {
               fetchNext={fetchNextMessages}
               hasMore={hasMore}
             />
-            {chatRoomCtx.loading && (
+            {chatRoomCtx.loading && <MessageLoader />}
+            {chatRoomCtx.typingMembers.length > 0 && (
               <Box
                 component="div"
-                sx={{
-                  p: 1,
-                  width: "100px",
-                  alignSelf: "flex-end",
-                  textAlign: "center",
-                  mr: 2,
-                  borderRadius: 5,
-                  backgroundColor: "background.paper",
-                }}
+                sx={{ display: "flex", justifyContent: "flex-end", px: 2 }}
               >
-                <CircularProgress size={15} />
+                <UserIsTypingAnimation text={getTypingStateText()} />
               </Box>
             )}
             <ChatBar

@@ -15,8 +15,6 @@ const ImagesList: React.FC<ImagesListPropsType> = ({
   onImageError,
   index = 0,
 }) => {
-  console.log({ index });
-  console.log({ images });
   return (
     <Box
       component="div"
@@ -43,7 +41,7 @@ const ImagesList: React.FC<ImagesListPropsType> = ({
             key={i}
             onClick={() => onImageClick && onImageClick(i)}
             onImageError={() => onImageError && onImageError(i)}
-            src={img}
+            src={img || "broken"}
             sx={{
               height: "100%",
               boxShadow: 5,

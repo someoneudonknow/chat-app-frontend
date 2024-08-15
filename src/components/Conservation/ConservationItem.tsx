@@ -7,8 +7,8 @@ import {
   ListItemText,
   Typography,
 } from "@mui/material";
-import React, { MouseEvent, useEffect, useId, useState } from "react";
-import { MoreHoriz } from "@mui/icons-material";
+import React, { MouseEvent, useId, useState } from "react";
+import { FiberManualRecord, MoreHoriz } from "@mui/icons-material";
 import { ConservationType } from "../../models/conservation.model";
 import { GroupDropdownMenu, PrivateChatDropdownMenu } from "../DropdownMenu";
 import { TextOverflowEllipsis } from "../Person/PersonItem";
@@ -23,6 +23,7 @@ interface ConservationItemPropsType {
   onClick?: (conservationId: string) => void;
   active?: boolean;
   isOnline?: boolean;
+  hasUnreadMessage?: boolean;
 }
 
 const ConservationItem: React.FC<ConservationItemPropsType> = ({
@@ -34,6 +35,7 @@ const ConservationItem: React.FC<ConservationItemPropsType> = ({
   onClick,
   active,
   isOnline,
+  hasUnreadMessage,
 }) => {
   const [hover, setHover] = useState<boolean>(false);
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
@@ -94,16 +96,15 @@ const ConservationItem: React.FC<ConservationItemPropsType> = ({
       </ListItemAvatar>
       <ListItemText
         primary={
-          <Typography
+          <TextOverflowEllipsis
+            component="span"
             sx={{
-              fontSize: "1.1rem",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
+              display: "block",
+              fontSize: "18px",
             }}
           >
             {name}
-          </Typography>
+          </TextOverflowEllipsis>
         }
         secondary={
           <TextOverflowEllipsis
@@ -112,8 +113,8 @@ const ConservationItem: React.FC<ConservationItemPropsType> = ({
               display: "block",
               color: (theme) =>
                 theme.palette.mode === "dark"
-                  ? "rgba(255, 255, 255, 0.5)"
-                  : "rgba(0,0,0,0.4)",
+                  ? `rgba(255, 255, 255, ${hasUnreadMessage ? 1 : 0.5})`
+                  : `rgba(0,0,0,${hasUnreadMessage ? 1 : 0.4})`,
             }}
             variant="body2"
           >
@@ -121,6 +122,7 @@ const ConservationItem: React.FC<ConservationItemPropsType> = ({
           </TextOverflowEllipsis>
         }
       />
+      {hasUnreadMessage && <FiberManualRecord sx={{ fontSize: "15px" }} />}
       {hover && (
         <IconButton
           sx={{

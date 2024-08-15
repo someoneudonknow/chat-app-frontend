@@ -41,3 +41,8 @@ export const JOINED_CONSERVATION = "conservations/joined/all";
 // messages endpoints
 export const MESSAGE = "messages";
 export const MESSAGES_IN_CONSERVATION = "messages/conservations";
+
+// call endpoints
+export const CALL = "calls";
+export const JOIN_CALL = "calls/join";
+export const END_CALL = "calls/end";
