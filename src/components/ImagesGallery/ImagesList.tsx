@@ -27,7 +27,7 @@ const ImagesList: React.FC<ImagesListPropsType> = ({
         alignItems: "center",
         justifyContent: "center",
         gap: "10px",
-        overflowX: "scroll",
+        overflowX: "auto",
         scrollSnapType: "x mandatory",
         scrollBehavior: "smooth",
         "&::-webkit-scrollbar": {
@@ -44,6 +44,7 @@ const ImagesList: React.FC<ImagesListPropsType> = ({
             src={img || "broken"}
             sx={{
               height: "100%",
+              width: "200px",
               boxShadow: 5,
               aspectRatio: 1 / 1,
               borderRadius: 2,

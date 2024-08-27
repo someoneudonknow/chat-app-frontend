@@ -41,10 +41,14 @@ const LoginForm: React.FC = () => {
     email,
     password,
   }) => {
-    await dispatch(
-      loginWithEmailPassword({ email, password, remember: isRememberMe })
-    );
-    navigate("/user/chat", { replace: true });
+    try {
+      await dispatch(
+        loginWithEmailPassword({ email, password, remember: isRememberMe })
+      );
+      navigate("/user/chat", { replace: true });
+    } catch (e: any) {
+      console.log(e.message);
+    }
   };
 
   const handleLoginWithGoogle = async () => {};

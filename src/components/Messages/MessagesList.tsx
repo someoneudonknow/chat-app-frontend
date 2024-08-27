@@ -1,8 +1,9 @@
-import { Box, Theme, Typography, useTheme } from "@mui/material";
-import React, { forwardRef, useEffect, useMemo, useRef } from "react";
+import { Box, Typography, useTheme } from "@mui/material";
+import { forwardRef, useMemo } from "react";
 import { MessageSender, MessagesUnion } from "../../models/message.model";
 import InfiniteScroll, {
   InfiniteScrollProps,
+  InfiniteScrollRef,
 } from "../InfiniteScroll/InfiniteScroll";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
@@ -18,7 +19,7 @@ type MessagesListPropsType = {
   data: MessagesUnion[];
 } & Omit<InfiniteScrollProps, "render">;
 
-const MessagesList = forwardRef<HTMLDivElement, MessagesListPropsType>(
+const MessagesList = forwardRef<InfiniteScrollRef, MessagesListPropsType>(
   ({ data, ...rest }, ref) => {
     const theme = useTheme();
     const currentUserId = useSelector(

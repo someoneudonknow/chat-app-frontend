@@ -142,6 +142,7 @@ const ContactSelection: React.FC<ContactSelectionPropsType> = ({
           >
             {selectedContacts.map((c) => (
               <ContactChip
+                key={c._id}
                 id={c._id}
                 name={getUserContactName(c)}
                 photo={c.photo}

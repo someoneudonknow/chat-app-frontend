@@ -8,7 +8,7 @@ type ImagePropsType = {
   imgStyle?: CSSProperties;
   onImageError?: () => void;
   onImageLoaded?: () => void;
-} & BoxProps;
+} & Omit<BoxProps, "sx">;
 
 type BrokenImagePropsType = BoxProps;
 
@@ -60,7 +60,7 @@ const Image: React.FC<ImagePropsType> = ({
   }
 
   return (
-    <Box component="div" sx={{ ...sx, position: "relative" }} {...rest}>
+    <Box component="div" sx={{ position: "relative", ...sx }} {...rest}>
       {loading && (
         <Box
           sx={{

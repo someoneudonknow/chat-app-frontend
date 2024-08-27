@@ -3,6 +3,7 @@ import { ImageMessagePropsType } from "../types";
 import { Box } from "@mui/material";
 import Image from "../../UIs/Image";
 import { useChatRoom } from "../../ChatRoom/context/ChatRoomContextProvider";
+import { useChatRoomAttachments } from "../../ChatRoom/context/ChatRoomAttachmentsProvider";
 
 const ImageMessage: React.FC<ImageMessagePropsType> = ({
   image,
@@ -10,10 +11,10 @@ const ImageMessage: React.FC<ImageMessagePropsType> = ({
   originalMessage,
 }) => {
   const [hover, setHover] = useState<boolean>(false);
-  const chatRoomCtx = useChatRoom();
+  const { openImagesGallery } = useChatRoomAttachments();
 
   const handleMessageClick = () => {
-    chatRoomCtx.openImagesGallery(originalMessage._id);
+    openImagesGallery(originalMessage._id);
   };
 
   return (

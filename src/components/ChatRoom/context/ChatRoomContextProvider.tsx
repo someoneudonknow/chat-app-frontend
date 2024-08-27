@@ -1,6 +1,7 @@
 import {
   ReactNode,
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -10,17 +11,27 @@ import {
   Conservation,
   ConservationMember,
 } from "../../../models/conservation.model";
-import {
-  ImageMessage,
-  MessageType,
-  MessagesUnion,
-} from "../../../models/message.model";
-import ImagesGallery from "../../ImagesGallery/ImagesGallery";
+import { MessagesUnion } from "../../../models/message.model";
 import { useSocket } from "../../../hooks";
+import { MessagesService } from "../../../services";
+import { BASE_URL } from "../../../constants/api-endpoints";
+import { AttachmentsSidebarTabNamesValues } from "../types";
 
 type ChatRoomContextProviderPropsType = {
   children: ReactNode;
 };
+
+export type SidebarView =
+  | {
+      viewName: "primary";
+      data?: any;
+    }
+  | {
+      viewName: "attachments";
+      data?: {
+        tab?: AttachmentsSidebarTabNamesValues;
+      };
+    };
 
 type ChatRoomState = {
   searchMessageShow: boolean;
@@ -28,8 +39,10 @@ type ChatRoomState = {
   conservation: Conservation | null;
   messagesList: MessagesUnion[];
   loading: boolean;
-  imagesGalleryShow: boolean;
   typingMembers: string[];
+  nextCursor: string | null;
+  hasMoreMessages: boolean;
+  sidebarView: SidebarView;
 };
 
 type ChatRoomContext = {
@@ -39,17 +52,22 @@ type ChatRoomContext = {
   setConservation: (c: Conservation) => void;
   setMessagesList: (messages: MessagesUnion[]) => void;
   setLoading: (loading: boolean) => void;
-  openImagesGallery: (imageIdIndex: MessagesUnion["_id"]) => void;
+  fetchNextMessages: () => Promise<void>;
+  setSidebarView: (view: SidebarView) => void;
 } & ChatRoomState;
 
 const initChatRoomState: ChatRoomState = {
   searchMessageShow: false,
-  imagesGalleryShow: false,
   conservation: null,
   chatBarType: "regular",
   messagesList: [],
   typingMembers: [],
   loading: false,
+  nextCursor: null,
+  hasMoreMessages: true,
+  sidebarView: {
+    viewName: "primary",
+  },
 };
 
 const initState: ChatRoomContext = {
@@ -60,7 +78,8 @@ const initState: ChatRoomContext = {
   setConservation: () => {},
   setMessagesList: () => {},
   setLoading: () => {},
-  openImagesGallery: () => {},
+  fetchNextMessages: async () => {},
+  setSidebarView: () => {},
 };
 
 const chatRoomContext = createContext<ChatRoomContext>(initState);
@@ -78,50 +97,34 @@ enum EventName {
 const ChatRoomContextProvider: React.FC<ChatRoomContextProviderPropsType> = ({
   children,
 }) => {
-  const [chatRoomState, setChatRoomState] =
-    useState<ChatRoomState>(initChatRoomState);
-  const [imageMessages, setImageMessages] = useState<ImageMessage[]>([]);
-  const [imageIndex, setImageIndex] = useState<number | null>(0);
+  const [searchMessageBoxShow, setSearchMessageBoxShow] =
+    useState<boolean>(false);
+  const [conservation, setConservation] = useState<Conservation | null>(null);
+  const [chatBarType, setChatBarType] = useState<"regular" | "audio">(
+    "regular"
+  );
+  const [messagesList, setMessagesList] = useState<MessagesUnion[]>([]);
+  const [typingMembers, setTypingMembers] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [hasMoreMessages, setHasMoreMessages] = useState<boolean>(true);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [sidebarView, setSidebarView] = useState<SidebarView>({
+    viewName: "primary",
+  });
   const { socket } = useSocket();
-
-  useEffect(() => {
-    if (chatRoomState?.messagesList.length > 0) {
-      const images = chatRoomState.messagesList.filter(
-        (message) =>
-          message.type === MessageType.IMAGE &&
-          !imageMessages.find((m) => m._id === message._id)
-      );
-
-      setImageMessages((prev) => {
-        const newImagesList = [...prev, ...(images as ImageMessage[])];
-
-        newImagesList.sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-
-        return newImagesList;
-      });
-    }
-
-    // eslint-disable-next-line
-  }, [chatRoomState.messagesList]);
 
   // use effect for socket event handler
   useEffect(() => {
-    if (!chatRoomState.conservation) return;
+    if (!conservation) return;
 
     socket?.on(EventName.NEW_MESSAGE, (message: MessagesUnion) => {
-      setChatRoomState((prev) => ({
-        ...prev,
-        messagesList: [message, ...prev.messagesList],
-      }));
+      setMessagesList((prev) => [message, ...prev]);
     });
 
     socket?.on(EventName.ONLINE_USER, (payload) => {
-      setChatRoomState((prev) => {
-        if (prev.conservation) {
-          const clonedConservation: Conservation = { ...prev.conservation };
+      setConservation((prev) => {
+        if (prev) {
+          const clonedConservation: Conservation = { ...prev };
 
           for (const m of clonedConservation?.members || []) {
             const currentMember = m as ConservationMember;
@@ -132,10 +135,7 @@ const ChatRoomContextProvider: React.FC<ChatRoomContextProviderPropsType> = ({
             }
           }
 
-          return {
-            ...prev,
-            conservation: clonedConservation,
-          };
+          return clonedConservation;
         }
 
         return prev;
@@ -143,9 +143,9 @@ const ChatRoomContextProvider: React.FC<ChatRoomContextProviderPropsType> = ({
     });
 
     socket?.on(EventName.OFFLINE_USER, (payload) => {
-      setChatRoomState((prev) => {
-        if (prev.conservation) {
-          const clonedConservation: Conservation = { ...prev.conservation };
+      setConservation((prev) => {
+        if (prev) {
+          const clonedConservation: Conservation = { ...prev };
 
           for (const m of clonedConservation?.members || []) {
             const currentMember = m as ConservationMember;
@@ -156,10 +156,7 @@ const ChatRoomContextProvider: React.FC<ChatRoomContextProviderPropsType> = ({
             }
           }
 
-          return {
-            ...prev,
-            conservation: clonedConservation,
-          };
+          return clonedConservation;
         }
 
         return prev;
@@ -167,82 +164,99 @@ const ChatRoomContextProvider: React.FC<ChatRoomContextProviderPropsType> = ({
     });
 
     socket?.on(EventName.TYPING, (memberId) => {
-      setChatRoomState((prev) => ({
-        ...prev,
-        typingMembers: [...prev.typingMembers, memberId],
-      }));
+      setTypingMembers((prev) => [...prev, memberId]);
     });
 
     socket?.on(EventName.CANCEL_TYPING, (memberId) => {
-      setChatRoomState((prev) => ({
-        ...prev,
-        typingMembers: prev.typingMembers.filter((mid) => mid !== memberId),
-      }));
+      setTypingMembers((prev) => prev.filter((mid) => mid !== memberId));
     });
 
-    socket?.emit(EventName.SETUP_CONSERVATION, chatRoomState.conservation);
+    socket?.emit(EventName.SETUP_CONSERVATION, conservation);
 
     return () => {
       socket?.off(EventName.NEW_MESSAGE);
       socket?.off(EventName.TYPING);
       socket?.off(EventName.CANCEL_TYPING);
-      socket?.emit(
-        EventName.lEAVE_CONSERVATION,
-        chatRoomState.conservation?._id
-      );
+      socket?.emit(EventName.lEAVE_CONSERVATION, conservation?._id);
     };
-  }, [chatRoomState.conservation, socket]);
+  }, [conservation, socket]);
 
-  const _state = useMemo(
+  const fetchNextMessages = useCallback(async () => {
+    if (!conservation) {
+      setHasMoreMessages(false);
+      return;
+    }
+
+    try {
+      const messageService = new MessagesService(BASE_URL);
+      let messagesResponse;
+
+      if (nextCursor) {
+        messagesResponse = await messageService.getMessagesInConservation(
+          conservation?._id,
+          20,
+          { nextCursor: nextCursor }
+        );
+      } else {
+        messagesResponse = await messageService.getMessagesInConservation(
+          conservation?._id,
+          20
+        );
+      }
+      const hasNext = messagesResponse.metadata?.hasNext;
+
+      setMessagesList((prev) => [
+        ...prev,
+        ...(messagesResponse?.metadata?.list || []),
+      ]);
+      setHasMoreMessages(hasNext);
+      if (hasNext) {
+        setNextCursor(messagesResponse.metadata?.next);
+      }
+    } catch (err) {
+      console.error(err);
+      setHasMoreMessages(false);
+    }
+  }, [nextCursor, conservation]);
+
+  const _state = useMemo<ChatRoomContext>(
     () => ({
-      ...chatRoomState,
-      setMessagesList: (messages: MessagesUnion[]) => {
-        setChatRoomState((prev) => ({ ...prev, messagesList: messages }));
-      },
-      hideSearchMessageBox: () => {
-        setChatRoomState((prev) => ({ ...prev, searchMessageShow: false }));
-      },
-      showSearchMessageBox: () => {
-        setChatRoomState((prev) => ({ ...prev, searchMessageShow: true }));
-      },
-      setConservation: (c: Conservation) => {
-        setChatRoomState((prev) => ({ ...prev, conservation: c }));
-      },
-      setChatBar: (type: "regular" | "audio") => {
-        setChatRoomState((prev) => ({ ...prev, chatBarType: type }));
-      },
-      setLoading: (loading: boolean) => {
-        setChatRoomState((prev) => ({ ...prev, loading: loading }));
-      },
-      openImagesGallery: (imageIdIndex: MessagesUnion["_id"]) => {
-        setImageIndex(imageMessages.findIndex((m) => m._id === imageIdIndex));
-        setChatRoomState((prev) => ({ ...prev, imagesGalleryShow: true }));
-      },
+      chatBarType,
+      messagesList,
+      conservation,
+      loading,
+      searchMessageShow: searchMessageBoxShow,
+      typingMembers,
+      nextCursor,
+      hasMoreMessages,
+      sidebarView,
+      setSidebarView: (view: SidebarView) => setSidebarView(view),
+      setMessagesList: (messages: MessagesUnion[]) => setMessagesList(messages),
+      hideSearchMessageBox: () => setSearchMessageBoxShow(false),
+      showSearchMessageBox: () => setSearchMessageBoxShow(true),
+      setConservation: (c: Conservation) => setConservation(c),
+      setChatBar: (type: "regular" | "audio") => setChatBarType(type),
+      setLoading: (loading: boolean) => setLoading(loading),
+      fetchNextMessages,
     }),
-    //eslint-disable-next-line
+
     [
-      chatRoomState.chatBarType,
-      chatRoomState.messagesList,
-      chatRoomState.conservation,
-      chatRoomState.imagesGalleryShow,
-      chatRoomState.loading,
-      chatRoomState.searchMessageShow,
-      chatRoomState.typingMembers,
-      imageMessages,
+      nextCursor,
+      hasMoreMessages,
+      chatBarType,
+      messagesList,
+      conservation,
+      loading,
+      searchMessageBoxShow,
+      typingMembers,
+      sidebarView,
+      fetchNextMessages,
     ]
   );
 
   return (
     <chatRoomContext.Provider value={_state}>
       {children}
-      <ImagesGallery
-        onClose={() =>
-          setChatRoomState((prev) => ({ ...prev, imagesGalleryShow: false }))
-        }
-        index={imageIndex || 0}
-        open={chatRoomState.imagesGalleryShow}
-        images={imageMessages.map((m) => m.content.originalImage.url)}
-      />
     </chatRoomContext.Provider>
   );
 };

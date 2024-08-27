@@ -3,6 +3,7 @@
 import {
   BASE_URL,
   MESSAGE,
+  MESSAGE_ATTACHMENTS,
   MESSAGES_IN_CONSERVATION,
 } from "../constants/api-endpoints";
 import {
@@ -23,6 +24,31 @@ import { getImageMeta } from "../utils";
 class MessagesService extends BaseService {
   constructor(baseUrl: string) {
     super(baseUrl);
+  }
+
+  async getAttachments({
+    type,
+    conservationId,
+    queryStr,
+  }: {
+    type: MessageType.FILE | MessageType.IMAGE | MessageType.VIDEO;
+    conservationId: string;
+    queryStr?: string;
+  }) {
+    if (!queryStr)
+      return await this.get(
+        `${MESSAGE_ATTACHMENTS.replace(
+          ":conservationId",
+          conservationId
+        )}?type=${type}`
+      );
+
+    return await this.get(
+      `${MESSAGE_ATTACHMENTS.replace(
+        ":conservationId",
+        conservationId
+      )}?type=${type}&${queryStr}`
+    );
   }
 
   async sendFileMessage(

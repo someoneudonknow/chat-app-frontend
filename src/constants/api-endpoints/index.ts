@@ -1,4 +1,4 @@
-export const BASE_URL: string = `${import.meta.env.VITE_BASE_URL}/v1/api`;
+export const BASE_URL = `${import.meta.env.VITE_BASE_URL}/v1/api`;
 
 // auth endpoints
 export const LOGIN = "auth/login";
@@ -41,7 +41,8 @@ export const JOINED_CONSERVATION = "conservations/joined/all";
 // messages endpoints
 export const MESSAGE = "messages";
 export const MESSAGES_IN_CONSERVATION = "messages/conservations";
-
+export const MESSAGE_ATTACHMENTS =
+  "messages/conservations/:conservationId/attachments";
 // call endpoints
 export const CALL = "calls";
 export const JOIN_CALL = "calls/join";

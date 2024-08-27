@@ -6,6 +6,7 @@ import { ConservationService } from "../../services";
 import { BASE_URL } from "../../constants/api-endpoints";
 import { LinearProgress, Paper } from "@mui/material";
 import ChatRoomContextProvider from "../../components/ChatRoom/context";
+import ChatRoomAttachmentsProvider from "../../components/ChatRoom/context/ChatRoomAttachmentsProvider";
 
 const ConservationView = () => {
   const { conservationId } = useParams();
@@ -41,7 +42,9 @@ const ConservationView = () => {
       )}
       {conservation && !loading && (
         <ChatRoomContextProvider>
-          <ChatRoom conservation={conservation as Conservation} />
+          <ChatRoomAttachmentsProvider>
+            <ChatRoom conservation={conservation as Conservation} />
+          </ChatRoomAttachmentsProvider>
         </ChatRoomContextProvider>
       )}
     </>
