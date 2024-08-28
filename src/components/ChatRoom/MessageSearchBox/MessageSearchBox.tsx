@@ -13,7 +13,7 @@ import {
   KeyboardArrowUp,
   Search,
 } from "@mui/icons-material";
-import { useChatRoom } from "../context/ChatRoomContextProvider";
+import { useChatRoom } from "../context/ChatRoomProvider";
 import { FieldValues, useForm } from "react-hook-form";
 
 const MessageSearchBox: React.FC = () => {

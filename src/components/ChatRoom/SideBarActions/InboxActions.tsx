@@ -6,7 +6,7 @@ import { Conservation } from "../../../models/conservation.model";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import { useNavigate } from "react-router-dom";
-import { useChatRoom } from "../context/ChatRoomContextProvider";
+import { useChatRoom } from "../context/ChatRoomProvider";
 
 type InboxActionsPropsType = {
   conservation: Conservation;

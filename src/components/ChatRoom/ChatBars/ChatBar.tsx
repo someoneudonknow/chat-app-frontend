@@ -10,7 +10,7 @@ import { Box, IconButton, Paper, Stack, Tooltip } from "@mui/material";
 import { MouseEvent, memo, useEffect, useState } from "react";
 import GiphyPickerMenu from "../../GiphyPicker";
 import { IGif } from "@giphy/js-types";
-import { useChatRoom } from "../context/ChatRoomContextProvider";
+import { useChatRoom } from "../context/ChatRoomProvider";
 import { motion, useAnimationControls } from "framer-motion";
 import TextChatBar from "./TextChatBar";
 import ChipFileListPreview from "../../ChipFileListPreview";

@@ -17,7 +17,7 @@ import { MessagesService } from "../../../services";
 import { BASE_URL } from "../../../constants/api-endpoints";
 import { AttachmentsSidebarTabNamesValues } from "../types";
 
-type ChatRoomContextProviderPropsType = {
+type ChatRoomProviderPropsType = {
   children: ReactNode;
 };
 
@@ -94,7 +94,7 @@ enum EventName {
   OFFLINE_USER = "users/offline-user",
 }
 
-const ChatRoomContextProvider: React.FC<ChatRoomContextProviderPropsType> = ({
+const ChatRoomProvider: React.FC<ChatRoomProviderPropsType> = ({
   children,
 }) => {
   const [searchMessageBoxShow, setSearchMessageBoxShow] =
@@ -263,4 +263,4 @@ const ChatRoomContextProvider: React.FC<ChatRoomContextProviderPropsType> = ({
 
 export const useChatRoom = () => useContext(chatRoomContext);
 
-export default ChatRoomContextProvider;
+export default ChatRoomProvider;

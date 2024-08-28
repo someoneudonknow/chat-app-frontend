@@ -2,11 +2,11 @@ import React, { useCallback, useRef } from "react";
 import QueryStrBuilder from "../../../../utils/QueryStrBuilder";
 import { MessagesService } from "../../../../services";
 import { BASE_URL } from "../../../../constants/api-endpoints";
-import { useChatRoom } from "../../context/ChatRoomContextProvider";
+import { useChatRoom } from "../../context/ChatRoomProvider";
 import { ImageMessage, MessageType } from "../../../../models/message.model";
 import { InfiniteScroll } from "../../../InfiniteScroll";
 import { useChatRoomAttachments } from "../../context/ChatRoomAttachmentsProvider";
-import { Box, IconButton } from "@mui/material";
+import { Box } from "@mui/material";
 import { Visibility } from "@mui/icons-material";
 
 const messageService = new MessagesService(BASE_URL);
@@ -82,9 +82,11 @@ const ImageAttachmentList: React.FC = () => {
         justifyContent: "flex-start",
         padding: `${gridGap}px`,
         gap: `${gridGap}px`,
+        transition: "none",
       }}
       data={attachments["IMAGES"].list}
       fetchNext={getNext}
+      loadingEl={<p>Loading...</p>}
       hasMore={attachments["IMAGES"].hasMore}
       render={(imageMessage: ImageMessage) => {
         return (

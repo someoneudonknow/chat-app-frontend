@@ -1,7 +1,7 @@
 import { ArrowBack } from "@mui/icons-material";
 import { IconButton, Paper, Button, ButtonGroup, Box } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { useChatRoom } from "../context/ChatRoomContextProvider";
+import { useChatRoom } from "../context/ChatRoomProvider";
 import {
   AttachmentsSidebarTabNames,
   AttachmentsSidebarTabNamesValues,

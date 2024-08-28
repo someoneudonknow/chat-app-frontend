@@ -15,7 +15,7 @@ import { GroupActions, InboxActions } from "../SideBarActions";
 import { getConservationItemInfo } from "../../../utils";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
-import { useChatRoom } from "../context/ChatRoomContextProvider";
+import { useChatRoom } from "../context/ChatRoomProvider";
 import {
   ConservationMember,
   ConservationType,

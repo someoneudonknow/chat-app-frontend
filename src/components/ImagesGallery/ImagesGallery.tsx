@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PortalWrapper from "../PortalWrapper";
 import { Box, IconButton, Stack, Typography } from "@mui/material";
 import {
@@ -7,24 +7,16 @@ import {
   NavigateBefore,
   NavigateNext,
 } from "@mui/icons-material";
-import { motion, useMotionValue } from "framer-motion";
 import ImagesList from "./ImagesList";
 import { downloadFile } from "../../utils";
 import { v4 as uuid } from "uuid";
+import { ImageMessage } from "../../models/message.model";
 
 type ImagesGalleryPropsType = {
   index?: number;
-  images: string[];
+  images: ImageMessage["content"][];
   onClose: () => void;
   open: boolean;
-};
-
-const DRAG_BUFFER = 50;
-const SPRING_OPTIONS = {
-  type: "spring",
-  mass: 3,
-  stiffness: 400,
-  damping: 50,
 };
 
 const ImagesGallery: React.FC<ImagesGalleryPropsType> = ({
@@ -35,28 +27,20 @@ const ImagesGallery: React.FC<ImagesGalleryPropsType> = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState<number>(index);
   const [errorImageIndexes, setErrorImageIndexes] = useState<number[]>([]);
-  const [dragging, setDragging] = useState<boolean>(false);
   const iconSizes = `${30}px`;
-  const dragX = useMotionValue(0);
+  const imageListWrapperRef = useRef<HTMLDivElement>();
+  const wrapperWidth =
+    imageListWrapperRef.current?.offsetWidth ||
+    imageListWrapperRef.current?.clientWidth ||
+    500;
+  const wrapperHeight =
+    imageListWrapperRef.current?.offsetHeight ||
+    imageListWrapperRef.current?.clientHeight ||
+    500;
 
   useEffect(() => {
     setCurrentIndex(index);
   }, [index]);
-
-  const handleDragStart = () => {
-    setDragging(true);
-  };
-
-  const handleDragEnd = () => {
-    setDragging(false);
-    const x = dragX.get();
-
-    if (x < -DRAG_BUFFER) {
-      slideNext();
-    } else if (x >= DRAG_BUFFER) {
-      slidePrev();
-    }
-  };
 
   const handleImageClick = (index: number) => {
     setCurrentIndex(index);
@@ -91,8 +75,13 @@ const ImagesGallery: React.FC<ImagesGalleryPropsType> = ({
   };
 
   const handleDownloadCurrentImage = async () => {
-    await downloadFile(images[currentIndex], uuid());
+    await downloadFile(images[currentIndex].originalImage.url, uuid());
   };
+
+  console.log({
+    width: imageListWrapperRef.current?.offsetWidth,
+    height: imageListWrapperRef.current?.offsetHeight,
+  });
 
   return (
     <PortalWrapper>
@@ -142,73 +131,59 @@ const ImagesGallery: React.FC<ImagesGalleryPropsType> = ({
           sx={{
             display: "flex",
             flexDirection: "column",
+            alignItems: "center",
             height: "100%",
             pt: 5,
           }}
         >
           <Box
             component="div"
+            ref={imageListWrapperRef}
             sx={{
               flex: 1,
               position: "relative",
-              textAlign: "center",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              width: "100%",
             }}
           >
-            <Box sx={{ height: "100%" }}>
-              <motion.div
+            {images && images.length > 0 && (
+              <div
+                key={images[currentIndex].publicId}
                 style={{
-                  display: "flex",
-                  overflowX: "hidden",
-                  height: "100%",
-                  width: "100%",
+                  height: `${Math.min(
+                    wrapperHeight,
+                    images[currentIndex].originalImage.height
+                  )}px`,
+                  width: `${Math.min(
+                    wrapperWidth,
+                    images[currentIndex].originalImage.width
+                  )}px`,
+                  background: `url(${images[currentIndex]?.originalImage.url}) no-repeat center / contain`,
                 }}
               >
-                {images.map((url, index) => {
-                  return (
-                    <motion.div
-                      key={index}
-                      onDragStart={handleDragStart}
-                      onDragEnd={handleDragEnd}
-                      drag="x"
-                      dragConstraints={{ left: 0, right: 0 }}
-                      animate={{ translateX: `-${currentIndex * 100}%` }}
-                      transition={SPRING_OPTIONS}
-                      style={{
-                        x: dragX,
-                        maxHeight: "100%",
-                        width: "100%",
-                        flexShrink: 0,
-                        backgroundImage: `url(${url})`,
-                        backgroundRepeat: "no-repeat",
-                        backgroundPosition: "center",
-                        backgroundSize: "contain",
-                        cursor: dragging ? "grabbing" : "grab",
-                      }}
-                    >
-                      {errorImageIndexes.includes(index) && (
-                        <Box
-                          sx={{
-                            position: "absolute",
-                            top: "50%",
-                            left: "50%",
-                            transform: "translate(-50%, -50%)",
-                            backgroundColor: "#cccccc",
-                            width: "70%",
-                            height: "100%",
-                            display: "grid",
-                            placeItems: "center",
-                          }}
-                        >
-                          <Typography key={index} variant="h5" color="white">
-                            Image no longer available
-                          </Typography>
-                        </Box>
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
-            </Box>
+                {errorImageIndexes.includes(currentIndex) && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      backgroundColor: "#cccccc",
+                      width: "70%",
+                      height: "100%",
+                      display: "grid",
+                      placeItems: "center",
+                    }}
+                  >
+                    <Typography key={index} variant="h5" color="white">
+                      Image no longer available
+                    </Typography>
+                  </Box>
+                )}
+              </div>
+            )}
             <IconButton
               onClick={slideNext}
               sx={{
@@ -236,7 +211,7 @@ const ImagesGallery: React.FC<ImagesGalleryPropsType> = ({
           </Box>
           <ImagesList
             index={currentIndex}
-            images={images}
+            images={images.map((i) => i.originalImage.url)}
             onImageClick={handleImageClick}
             onImageError={handleImageError}
           />

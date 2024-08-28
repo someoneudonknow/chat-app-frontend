@@ -1,9 +1,9 @@
 import React, { useId, useState } from "react";
-import { useTheme } from "@mui/material";
+import { Box, useTheme } from "@mui/material";
 import { motion } from "framer-motion";
 import PrimarySidebarView from "./PrimarySidebarView";
 import AttachmentsFilterSidebarView from "./AttachmentsFilterSidebarView";
-import { useChatRoom } from "../context/ChatRoomContextProvider";
+import { useChatRoom } from "../context/ChatRoomProvider";
 
 type ChatRoomSideBarPropsType = {
   show: boolean;
@@ -16,10 +16,8 @@ const ChatRoomSideBar: React.FC<ChatRoomSideBarPropsType> = ({ show }) => {
   const { sidebarView } = useChatRoom();
 
   return (
-    <motion.div
+    <Box
       key={id}
-      initial={{ x: 40 }}
-      animate={{ x: 0 }}
       style={{
         width: show ? "30%" : "0%",
         transition: "all ease 0.3s",
@@ -32,7 +30,7 @@ const ChatRoomSideBar: React.FC<ChatRoomSideBarPropsType> = ({ show }) => {
       <AttachmentsFilterSidebarView
         show={sidebarView.viewName === "attachments"}
       />
-    </motion.div>
+    </Box>
   );
 };
 

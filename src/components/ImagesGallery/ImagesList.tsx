@@ -19,19 +19,20 @@ const ImagesList: React.FC<ImagesListPropsType> = ({
     <Box
       component="div"
       sx={{
-        height: 70,
-        width: "100%",
-        pt: 1,
-        px: 1,
         display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "10px",
+        flexWrap: "nowrap",
         overflowX: "auto",
-        scrollSnapType: "x mandatory",
-        scrollBehavior: "smooth",
+        width: "100%",
+        height: 100,
+        mt: 1,
+        p: 1,
+        alignItems: "center",
+        gap: "10px",
         "&::-webkit-scrollbar": {
-          height: "0.4em",
+          height: "thin",
+        },
+        "&::-webkit-scrollbar-thumb": {
+          background: "white",
         },
       }}
     >
@@ -44,7 +45,7 @@ const ImagesList: React.FC<ImagesListPropsType> = ({
             src={img || "broken"}
             sx={{
               height: "100%",
-              width: "200px",
+              flex: "0 0 auto",
               boxShadow: 5,
               aspectRatio: 1 / 1,
               borderRadius: 2,

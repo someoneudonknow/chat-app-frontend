@@ -35,9 +35,12 @@ class UploadService extends BaseService {
     const accessToken = Cookie.get(ACCESS_TOKEN);
     const refreshToken = Cookie.get(REFRESH_TOKEN);
 
+    if (!currentUserId || !accessToken) throw new Error("Can't upload");
+
     const headers = new Headers();
 
-    headers.append("x-client-id", currentUserId || "");
+    headers.append("x-client-id", currentUserId);
+
     if (accessToken) {
       headers.append("authorization", accessToken);
     }

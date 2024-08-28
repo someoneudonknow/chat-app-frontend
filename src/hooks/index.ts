@@ -5,6 +5,7 @@ import useFilePicker from "./useFilePicker";
 import useKeyPress from "./useKeyPress";
 import useClickOutside from "./useClickOutside";
 import useSocket from "./useSocket";
+import useHorizontalScroll from "./useHorizontalScroll";
 
 export {
   useSocket,
@@ -14,4 +15,5 @@ export {
   useForceUpdate,
   useKeyPress,
   useClickOutside,
+  useHorizontalScroll,
 };

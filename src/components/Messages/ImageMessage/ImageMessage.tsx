@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ImageMessagePropsType } from "../types";
 import { Box } from "@mui/material";
 import Image from "../../UIs/Image";
-import { useChatRoom } from "../../ChatRoom/context/ChatRoomContextProvider";
+import { useChatRoom } from "../../ChatRoom/context/ChatRoomProvider";
 import { useChatRoomAttachments } from "../../ChatRoom/context/ChatRoomAttachmentsProvider";
 
 const ImageMessage: React.FC<ImageMessagePropsType> = ({

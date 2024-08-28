@@ -1,3 +1,4 @@
-import ChatRoomContextProvider from "./ChatRoomContextProvider";
+import ChatRoomProvider from "./ChatRoomProvider";
+import ChatRoomAttachmentsProvider from "./ChatRoomAttachmentsProvider";
 
-export default ChatRoomContextProvider;
+export { ChatRoomProvider, ChatRoomAttachmentsProvider };

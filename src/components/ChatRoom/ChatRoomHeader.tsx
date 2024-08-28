@@ -19,7 +19,7 @@ import { getConservationItemInfo } from "../../utils";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 import MessageSearchBox from "./MessageSearchBox";
-import { useChatRoom } from "./context/ChatRoomContextProvider";
+import { useChatRoom } from "./context/ChatRoomProvider";
 import { CallService } from "../../services";
 import { BASE_URL } from "../../constants/api-endpoints";
 import { useSocket } from "../../hooks";

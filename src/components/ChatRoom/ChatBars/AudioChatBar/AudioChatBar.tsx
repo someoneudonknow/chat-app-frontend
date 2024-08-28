@@ -10,7 +10,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import { Delete, RestartAlt, Send } from "@mui/icons-material";
-import { useChatRoom } from "../../context/ChatRoomContextProvider";
+import { useChatRoom } from "../../context/ChatRoomProvider";
 import AudioRecorderBar from "./AudioRecorderBar";
 import WaveFormAudioPlayer from "../../../WaveFormAudioPlayer";
 import { SubmitedMessageType } from "../../types";

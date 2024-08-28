@@ -7,7 +7,7 @@ import { Box, Paper } from "@mui/material";
 import { MessagesList } from "../Messages";
 import ChatRoomHeader from "./ChatRoomHeader";
 import ChatBar from "./ChatBars/ChatBar";
-import { useChatRoom } from "./context/ChatRoomContextProvider";
+import { useChatRoom } from "./context/ChatRoomProvider";
 import AudioChatBar from "./ChatBars/AudioChatBar/AudioChatBar";
 import { toast } from "react-toastify";
 import { SubmitedMessageType } from "./types";

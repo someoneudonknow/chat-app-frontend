@@ -16,7 +16,7 @@ import {
 } from "../../../models/message.model";
 import { AttachmentsSidebarTabNamesKey } from "../types";
 import ImagesGallery from "../../ImagesGallery";
-import { useChatRoom } from "./ChatRoomContextProvider";
+import { useChatRoom } from "./ChatRoomProvider";
 
 type ChatRoomAttachmentsProviderProps = {
   children: ReactNode;
@@ -171,6 +171,7 @@ const ChatRoomAttachmentsProvider: React.FC<
         };
       });
     }
+    console.log("loop");
   }, [messagesList, setImages]);
 
   const _state = useMemo<ChatRoomAttachmentsContextType>(
@@ -199,7 +200,7 @@ const ChatRoomAttachmentsProvider: React.FC<
         index={imageIndex || 0}
         open={imagesGalleryShow}
         images={attachments["IMAGES"].list.map(
-          (m) => (m as ImageMessage).content.originalImage.url
+          (m) => (m as ImageMessage).content
         )}
       />
       {children}

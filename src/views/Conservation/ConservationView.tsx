@@ -5,8 +5,10 @@ import { useLayoutEffect, useState } from "react";
 import { ConservationService } from "../../services";
 import { BASE_URL } from "../../constants/api-endpoints";
 import { LinearProgress, Paper } from "@mui/material";
-import ChatRoomContextProvider from "../../components/ChatRoom/context";
-import ChatRoomAttachmentsProvider from "../../components/ChatRoom/context/ChatRoomAttachmentsProvider";
+import {
+  ChatRoomProvider,
+  ChatRoomAttachmentsProvider,
+} from "../../components/ChatRoom/context";
 
 const ConservationView = () => {
   const { conservationId } = useParams();
@@ -41,11 +43,11 @@ const ConservationView = () => {
         </Paper>
       )}
       {conservation && !loading && (
-        <ChatRoomContextProvider>
+        <ChatRoomProvider>
           <ChatRoomAttachmentsProvider>
             <ChatRoom conservation={conservation as Conservation} />
           </ChatRoomAttachmentsProvider>
-        </ChatRoomContextProvider>
+        </ChatRoomProvider>
       )}
     </>
   );

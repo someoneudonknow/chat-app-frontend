@@ -10,7 +10,7 @@ import { EmojiEmotions } from "@mui/icons-material";
 import { FieldValues, useForm } from "react-hook-form";
 import { useKeyPress, useSocket } from "../../../../hooks";
 import { EmojiClickData } from "emoji-picker-react";
-import { useChatRoom } from "../../context/ChatRoomContextProvider";
+import { useChatRoom } from "../../context/ChatRoomProvider";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../store";
 
