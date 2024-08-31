@@ -22,7 +22,7 @@ const callService = new CallService(BASE_URL);
 
 const Call: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const [callees, setCallees] = useState<CalleeInfo[]>([]);
+  const [callees, setCallees] = useState<string[]>([]);
   const [callNoti, setCallNoti] = useState<string | null>();
   const rtcToken = decodeURIComponent(searchParams.get("rtc_token") || "");
   const rtmToken = decodeURIComponent(searchParams.get("rtm_token") || "");
@@ -41,6 +41,7 @@ const Call: React.FC = () => {
     socket?.emit(CallEventName.SETUP, {
       callId,
       user: {
+        id: currentUser?._id,
         name: currentUser?.userName || currentUser?.email,
         avatar: currentUser?.photo,
       },
@@ -54,41 +55,40 @@ const Call: React.FC = () => {
     );
 
     socket?.on(CallEventName.CALLEE_JOINED, (payload) => {
-      setCallees((prev) => [...prev, payload]);
       setCallNoti(`${payload.name} has joined the call`);
     });
 
     socket?.on(CallEventName.CALLEE_LEFT, (user: CalleeInfo) => {
-      setCallees((prev) => prev.filter((u) => u.id !== user.id));
       setCallNoti(`${user.name} has left the call`);
+    });
+
+    socket?.on(CallEventName.CALLEES_CHANGED, (payload) => {
+      setCallees(payload);
+      console.log(payload);
     });
 
     return () => {
       socket?.off(CallEventName.CALL_REJECTED);
       socket?.off(CallEventName.CALLEE_JOINED);
       socket?.off(CallEventName.CALLEE_LEFT);
+      socket?.off(CallEventName.CALLEES_CHANGED);
     };
   }, [socket, callId, currentUser]);
 
-  const handleCallEndClicked = () => {
+  const handleCallEndClicked = async () => {
     if (currentUser) {
-      const userData = {
-        name: currentUser?.userName || currentUser?.email,
-        id: currentUser._id,
-      };
+      if (callees.length === 1) {
+        await callService.endCall({ callId: callId });
+      } else {
+        const userData = {
+          name: currentUser?.userName || currentUser?.email,
+          id: currentUser._id,
+        };
 
-      socket?.emit(CallEventName.CALLEE_LEAVE, { callId, user: userData });
-
-      if (callees.length === 0) {
-        // end call
-        console.log("end call");
+        socket?.emit(CallEventName.CALLEE_LEAVE, { callId, user: userData });
       }
     }
   };
-
-  useEffect(() => {
-    console.log({ callees });
-  }, [callees]);
 
   return (
     <Box

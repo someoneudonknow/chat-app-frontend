@@ -78,11 +78,6 @@ const ImagesGallery: React.FC<ImagesGalleryPropsType> = ({
     await downloadFile(images[currentIndex].originalImage.url, uuid());
   };
 
-  console.log({
-    width: imageListWrapperRef.current?.offsetWidth,
-    height: imageListWrapperRef.current?.offsetHeight,
-  });
-
   return (
     <PortalWrapper>
       <Box

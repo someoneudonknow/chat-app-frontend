@@ -20,7 +20,7 @@ export type MessageItemBaseProps = {
 
 export type MessageBaseProps = {
   sx?: SxProps;
-  originalMessage: MessagesUnion; //
+  originalMessage?: MessagesUnion; //
 };
 
 export type TextMessagePropsType = {

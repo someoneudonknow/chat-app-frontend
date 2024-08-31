@@ -1,18 +1,19 @@
-import { Box, BoxProps, SxProps } from "@mui/material";
+import { Box } from "@mui/material";
+import { BoxProps, SxProps } from "@mui/system";
 import React, { ReactNode, useRef } from "react";
 import { useHorizontalScroll } from "../../hooks";
 
-type HorizontalScrollContainerProps = {
+type HorizontalScrollContainerProps = BoxProps & {
   children: ReactNode;
-  sx?: SxProps<HTMLDivElement>;
-} & BoxProps;
+  sx?: BoxProps["sx"];
+};
 
 const HorizontalScrollContainer: React.FC<HorizontalScrollContainerProps> = ({
   children,
   sx,
   ...rest
 }) => {
-  const ref = useRef<HtmlDivElement>();
+  const ref = useRef<HTMLDivElement>(null);
 
   useHorizontalScroll(ref);
 

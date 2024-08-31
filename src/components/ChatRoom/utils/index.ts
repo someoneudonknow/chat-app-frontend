@@ -4,7 +4,7 @@ import {
   Conservation,
   ConservationMember,
 } from "../../../models/conservation.model";
-import { MessageType } from "../../../models/message.model";
+import { MessagesUnion, MessageType } from "../../../models/message.model";
 import { MessagesService, UploadService } from "../../../services";
 import { SubmitedMessageType } from "../types";
 import { IGif } from "@giphy/js-types";

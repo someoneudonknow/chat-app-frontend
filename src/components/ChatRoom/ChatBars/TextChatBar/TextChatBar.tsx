@@ -75,12 +75,14 @@ const TextChatBar: React.FC<TextChatBarPropsType> = ({
       {
         keys: "Enter",
         cb: (e: KeyboardEvent) => {
-          e.preventDefault();
+          if (!e.shiftKey) {
+            e.preventDefault();
 
-          handleSubmit(async (values: FieldValues) => {
-            onSubmit && (await onSubmit(values.chatInput as string));
-            resetField("chatInput");
-          })();
+            handleSubmit(async (values: FieldValues) => {
+              onSubmit && (await onSubmit(values.chatInput as string));
+              resetField("chatInput");
+            })();
+          }
         },
       },
     ],

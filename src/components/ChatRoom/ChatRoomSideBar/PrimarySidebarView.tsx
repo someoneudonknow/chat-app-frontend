@@ -126,13 +126,13 @@ const PrimarySidebarView: React.FC<PrimarySidebarViewPropsType> = ({
         {type === ConservationType.GROUP && <GroupActions />}
       </Box>
       <div>
-        <Accordion>
+        <Accordion defaultExpanded>
           <AccordionSummary expandIcon={<ExpandMore />} id="members-header">
             <People /> <span style={{ marginLeft: "5px" }}>Members</span>
           </AccordionSummary>
           <ChatRoomMemberList members={members} />
         </Accordion>
-        <Accordion>
+        <Accordion defaultExpanded>
           <AccordionSummary expandIcon={<ExpandMore />} id="attachment-header">
             <AttachFile />
             <span style={{ marginLeft: "5px" }}>Attachments</span>
@@ -177,7 +177,7 @@ const PrimarySidebarView: React.FC<PrimarySidebarViewPropsType> = ({
             <ListItemText primary="Files" />
           </ListItemButton>
         </Accordion>
-        <Accordion>
+        {/* <Accordion>
           <AccordionSummary expandIcon={<ExpandMore />} id="chat-info-header">
             <Info />
             <span style={{ marginLeft: "5px" }}>Chat informations</span>
@@ -188,7 +188,7 @@ const PrimarySidebarView: React.FC<PrimarySidebarViewPropsType> = ({
             </ListItemIcon>
             <ListItemText primary="Pin messages" />
           </ListItemButton>
-        </Accordion>
+        </Accordion> */}
       </div>
     </Paper>
   );

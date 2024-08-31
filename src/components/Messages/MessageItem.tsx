@@ -27,10 +27,12 @@ const MessageItem: React.FC<MessageItemPropsType> = ({ props }) => {
         return <VideoMessage {...props} />;
       case MessageType.FILE:
         return <FileMessage {...props} />;
+      default:
+        return null;
     }
   }, [props]);
 
-  return MessageComponent;
+  return <>{MessageComponent}</>;
 };
 
 export default MessageItem;

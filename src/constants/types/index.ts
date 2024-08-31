@@ -169,4 +169,5 @@ export enum CallEventName {
   CALLEE_JOINED = "calls/users/joined",
   CALLEE_LEFT = "calls/users/left",
   CALLEE_LEAVE = "calls/leave",
+  CALLEES_CHANGED = "calls/callees-changed",
 }

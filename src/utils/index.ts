@@ -33,17 +33,17 @@ export const throttle = <Type extends any[]>(fn: Function, delay: number) => {
   };
 };
 
-export const debounce = <Type extends any[]>(fn: Function, delay: number) => {
-  let timerId: number | null = null;
+export const debounce = <Type extends any[], ReturnType>(fn: (...args: Type) => ReturnType, delay: number) => {
+  let timerId: number | undefined = undefined;
 
-  return (...args: Type) => {
-    if (timerId) {
+  return (...args: Type): void => {
+    if (timerId !== undefined) {
       clearTimeout(timerId);
     }
 
     timerId = setTimeout(() => {
       fn(...args);
-    }, delay);
+    }, delay) as ReturnType extends void ? number : undefined;
   };
 };
 
@@ -543,4 +543,11 @@ export const moveElement = <T>(
 
   originalArray.splice(fromIndex, 1);
   originalArray.splice(toIndex, 0, el);
+};
+
+export const formatSecondsToHHMMSS = (seconds: number): string => {
+  return moment
+    .utc(seconds * 1000)
+    .format("HH:mm:ss")
+    .toString();
 };

@@ -75,10 +75,7 @@ const CreateGroupForm: React.FC<CreateGroupFormPropsType> = ({
           id="groupAccessibility"
           name="groupAccessibility"
           formLabel="Group accessibility"
-          data={[
-            { label: "publish", value: "PUBLISH" },
-            { label: "private", value: "PRIVATE" },
-          ]}
+          data={[{ label: "publish", value: "PUBLISH" }]}
           onCheckChange={handleGroupAccessibilityChanged}
           defaultValue="PUBLISH"
         />

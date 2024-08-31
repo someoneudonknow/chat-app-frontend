@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback } from "react";
 import QueryStrBuilder from "../../../../utils/QueryStrBuilder";
 import { MessagesService } from "../../../../services";
 import { BASE_URL } from "../../../../constants/api-endpoints";
@@ -84,9 +84,14 @@ const ImageAttachmentList: React.FC = () => {
         gap: `${gridGap}px`,
         transition: "none",
       }}
+      noDataText={
+        <p style={{ width: "100%", textAlign: "center" }}>No Images</p>
+      }
       data={attachments["IMAGES"].list}
       fetchNext={getNext}
-      loadingEl={<p>Loading...</p>}
+      loadingEl={
+        <p style={{ width: "100%", textAlign: "center" }}>Loading...</p>
+      }
       hasMore={attachments["IMAGES"].hasMore}
       render={(imageMessage: ImageMessage) => {
         return (

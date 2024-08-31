@@ -88,7 +88,7 @@ const ChatRoomAttachmentsProvider: React.FC<
 > = ({ children }) => {
   const [attachments, setAttachments] =
     useState<ChatRoomAttachments>(initAttachments);
-  const [imageIndex, setImageIndex] = useState<number | null>(0);
+  const [imageIndex, setImageIndex] = useState<number>(0);
   const [imagesGalleryShow, setImagesGalleryShow] = useState<boolean>(false);
   const { messagesList } = useChatRoom();
 
@@ -153,26 +153,42 @@ const ChatRoomAttachmentsProvider: React.FC<
     [attachments]
   );
 
-  useEffect(() => {
-    if (messagesList.length > 0) {
-      setImages((prev) => {
-        const images = messagesList.filter(
+  const filterAndSetAttachments = useCallback(
+    <T extends keyof ChatRoomAttachments>(type: T) => {
+      const messageTypeMapper: {
+        [k in keyof ChatRoomAttachments]: MessageType;
+      } = {
+        IMAGES: MessageType.IMAGE,
+        FILES: MessageType.FILE,
+        VIDEOS: MessageType.VIDEO,
+      } as const;
+
+      return (prev: ChatRoomAttachments[typeof type]) => {
+        const attachments = messagesList.filter(
           (message) =>
-            message.type === MessageType.IMAGE &&
+            message.type === messageTypeMapper[type] &&
             !prev.list.find((m) => m._id === message._id)
         );
 
         return {
           ...prev,
-          list: [...prev.list, ...(images as ImageMessage[])].sort(
+          list: [...prev.list, ...(attachments as typeof prev.list)].sort(
             (a, b) =>
               new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           ),
         };
-      });
+      };
+    },
+    [messagesList]
+  );
+
+  useEffect(() => {
+    if (messagesList.length > 0) {
+      setImages(filterAndSetAttachments("IMAGES"));
+      setFiles(filterAndSetAttachments("FILES"));
+      setVideos(filterAndSetAttachments("VIDEOS"));
     }
-    console.log("loop");
-  }, [messagesList, setImages]);
+  }, [filterAndSetAttachments, setImages, setFiles, setVideos, messagesList]);
 
   const _state = useMemo<ChatRoomAttachmentsContextType>(
     () => ({

@@ -1,6 +1,7 @@
 import { Box } from "@mui/material";
 import React from "react";
 import Image from "../UIs/Image";
+import HorizontalScrollContainer from "../HorizontalScrollContainer";
 
 type ImagesListPropsType = {
   images: string[];
@@ -16,24 +17,13 @@ const ImagesList: React.FC<ImagesListPropsType> = ({
   index = 0,
 }) => {
   return (
-    <Box
+    <HorizontalScrollContainer
       component="div"
       sx={{
-        display: "flex",
-        flexWrap: "nowrap",
-        overflowX: "auto",
-        width: "100%",
         height: 100,
         mt: 1,
         p: 1,
-        alignItems: "center",
-        gap: "10px",
-        "&::-webkit-scrollbar": {
-          height: "thin",
-        },
-        "&::-webkit-scrollbar-thumb": {
-          background: "white",
-        },
+        gap: "5px",
       }}
     >
       {images.map((img, i) => {
@@ -59,7 +49,7 @@ const ImagesList: React.FC<ImagesListPropsType> = ({
           />
         );
       })}
-    </Box>
+    </HorizontalScrollContainer>
   );
 };
 

@@ -14,7 +14,6 @@ import AgoraRTM, { RtmChannel, RtmClient } from "agora-rtm-sdk";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import { useNavigate } from "react-router-dom";
-import { ConservationRole } from "../../../models/conservation.model";
 
 type AgoraMediaType = "video" | "audio" | "datachannel";
 

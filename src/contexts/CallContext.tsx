@@ -84,6 +84,7 @@ const CallProvider: React.FC<CallContextProviderPropsType> = ({ children }) => {
       callId,
     }: StartCallFuncParams) => {
       const strWindowFeatures = `location=yes,scrollbars=yes,status=yes,width=${screen.width},height=${screen.height}`;
+
       const URL = `/user/call?call_id=${encodeURIComponent(
         callId
       )}&rtc_token=${encodeURIComponent(

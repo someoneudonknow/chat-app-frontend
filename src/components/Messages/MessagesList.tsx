@@ -17,7 +17,7 @@ import MessageItemGroup from "./MessageItemGroup";
 
 type MessagesListPropsType = {
   data: MessagesUnion[];
-} & Omit<InfiniteScrollProps, "render">;
+} & Omit<InfiniteScrollProps<string>, "render" | "data" | "ref" | "style">;
 
 const MessagesList = forwardRef<InfiniteScrollRef, MessagesListPropsType>(
   ({ data, ...rest }, ref) => {

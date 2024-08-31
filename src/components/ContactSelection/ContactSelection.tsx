@@ -166,11 +166,12 @@ const ContactSelection: React.FC<ContactSelectionPropsType> = ({
               position: "fixed",
               maxHeight:
                 screenHeight -
-                containerRef.current?.getBoundingClientRect().bottom -
+                (containerRef.current?.getBoundingClientRect().bottom ?? 0) -
                 10,
               top:
-                selectionListPos?.top ||
-                containerRef.current?.getBoundingClientRect().bottom,
+                selectionListPos?.top ??
+                containerRef.current?.getBoundingClientRect().bottom ??
+                0,
               left:
                 selectionListPos?.left ||
                 containerRef.current?.getBoundingClientRect().left,
