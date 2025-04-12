@@ -209,11 +209,11 @@ const ChatBar = memo<ChatBarPropsType>(({ onSubmit, shouldShow }) => {
                           <Mic />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title="Send locations" placement="top">
+                      {/* <Tooltip title="Send locations" placement="top">
                         <IconButton color="info">
                           <LocationOn />
                         </IconButton>
-                      </Tooltip>
+                      </Tooltip> */}
                     </Stack>
                   </Paper>
                 )}

@@ -26,9 +26,9 @@ const Root: React.FC = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const _userId = Cookies.get(CLIENT_ID);
-      const _accessToken = Cookies.get(ACCESS_TOKEN);
-      const _refreshToken = Cookies.get(REFRESH_TOKEN);
+      const _userId = sessionStorage.getItem(CLIENT_ID);
+      const _accessToken = sessionStorage.getItem(ACCESS_TOKEN);
+      const _refreshToken = sessionStorage.getItem(REFRESH_TOKEN);
 
       if (_userId && _accessToken && _refreshToken) {
         try {

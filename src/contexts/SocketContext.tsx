@@ -34,7 +34,7 @@ const URL =
 const SocketProvider: React.FC<SocketProviderPropsType> = ({ children }) => {
   const [userSocket, setUserSocket] =
     useState<SocketContextType["socket"]>(null);
-  const accessToken = Cookies.get(ACCESS_TOKEN);
+  const accessToken = sessionStorage.getItem(ACCESS_TOKEN);
   const currentUserId = useSelector(
     (state: RootState) => state.user.currentUser?._id
   );

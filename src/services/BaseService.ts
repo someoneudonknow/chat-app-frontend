@@ -23,9 +23,9 @@ class BaseService {
         headers: {
           ...req.headers,
           "Content-Type": "application/json",
-          "x-client-id": Cookie.get(CLIENT_ID),
-          authorization: Cookie.get(ACCESS_TOKEN),
-          refreshtoken: Cookie.get(REFRESH_TOKEN),
+          "x-client-id": sessionStorage.getItem(CLIENT_ID),
+          authorization: sessionStorage.getItem(ACCESS_TOKEN),
+          refreshtoken: sessionStorage.getItem(REFRESH_TOKEN),
         },
       } as RequestInit;
     });

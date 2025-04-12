@@ -176,7 +176,7 @@ const ContactStats: React.FC<ContactStatsPropsType> = ({ data }) => {
           justifyContent: "center",
         }}
       >
-        <Button
+        {/* <Button
           startIcon={<Delete />}
           variant="contained"
           color="error"
@@ -185,7 +185,7 @@ const ContactStats: React.FC<ContactStatsPropsType> = ({ data }) => {
           }}
         >
           Remove contact
-        </Button>
+        </Button> */}
       </Box>
     </Paper>
   );

@@ -39,7 +39,7 @@ const Everyone = () => {
   };
 
   return (
-    <ListWrapper>
+    <Box sx={{height: "100%", width: "100%", p: 2, display: "flex", flexDirection: "column"}}>
       <EveryoneSearchHeader />
       <InfiniteScroll
         debounceTimeout={500}
@@ -55,7 +55,7 @@ const Everyone = () => {
         fetchNext={getNextRecommendation}
         hasMore={hasNext}
       />
-    </ListWrapper>
+    </Box>
   );
 };
 

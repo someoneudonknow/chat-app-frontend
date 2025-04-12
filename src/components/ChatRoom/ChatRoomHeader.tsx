@@ -190,7 +190,7 @@ const ChatRoomHeader: React.FC<ChatRoomHeaderPropsType> = ({
           </Box>
         </Box>
         <Stack spacing={2} direction="row">
-          <SquareTooltipIconButton
+          {/* <SquareTooltipIconButton
             placement="bottom"
             sx={{ borderRadius: "50%", aspectRatio: 1 / 1 }}
             title="Audio call"
@@ -198,7 +198,7 @@ const ChatRoomHeader: React.FC<ChatRoomHeaderPropsType> = ({
             onClick={handleVoiceCallClick}
           >
             <Call />
-          </SquareTooltipIconButton>
+          </SquareTooltipIconButton> */}
           <SquareTooltipIconButton
             onClick={handleVideoCallClick}
             placement="bottom"

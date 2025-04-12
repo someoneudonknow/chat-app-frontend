@@ -31,9 +31,9 @@ class UploadService extends BaseService {
   }
 
   public async uploadOne({ formData }: { formData: FormData }) {
-    const currentUserId = Cookie.get(CLIENT_ID);
-    const accessToken = Cookie.get(ACCESS_TOKEN);
-    const refreshToken = Cookie.get(REFRESH_TOKEN);
+    const currentUserId = sessionStorage.getItem(CLIENT_ID);
+    const accessToken = sessionStorage.getItem(ACCESS_TOKEN);
+    const refreshToken = sessionStorage.getItem(REFRESH_TOKEN);
 
     if (!currentUserId || !accessToken) throw new Error("Can't upload");
 
@@ -68,9 +68,9 @@ class UploadService extends BaseService {
   }
 
   public async uploadMany({ formData }: { formData: FormData }) {
-    const currentUserId = Cookie.get(CLIENT_ID);
-    const accessToken = Cookie.get(ACCESS_TOKEN);
-    const refreshToken = Cookie.get(REFRESH_TOKEN);
+    const currentUserId = sessionStorage.getItem(CLIENT_ID);
+    const accessToken = sessionStorage.getItem(ACCESS_TOKEN);
+    const refreshToken = sessionStorage.getItem(REFRESH_TOKEN);
 
     const headers = new Headers();
 

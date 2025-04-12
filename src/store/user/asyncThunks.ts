@@ -32,17 +32,23 @@ export const loginWithEmailPassword = createAsyncThunk(
       const refreshTokenExpired = parseJWT(userRefreshToken).exp * 1000;
       const accessTokenExpired = parseJWT(userAccessToken).exp * 1000;
 
-      Cookies.set(REFRESH_TOKEN, userRefreshToken, {
-        expires: refreshTokenExpired,
-      });
+      // sessionStorage.setItem(REFRESH_TOKEN, userRefreshToken, {
+      //   expires: refreshTokenExpired,
+      // });
 
-      Cookies.set(CLIENT_ID, response?.metadata?.user?._id, {
-        expires: refreshTokenExpired,
-      });
+      // sessionStorage.setItem(CLIENT_ID, response?.metadata?.user?._id, {
+      //   expires: refreshTokenExpired,
+      // });
 
-      Cookies.set(ACCESS_TOKEN, userAccessToken, {
-        expires: accessTokenExpired,
-      });
+      // sessionStorage.setItem(ACCESS_TOKEN, userAccessToken, {
+      //   expires: accessTokenExpired,
+      // });
+
+      sessionStorage.setItem(REFRESH_TOKEN, userRefreshToken);
+
+      sessionStorage.setItem(CLIENT_ID, response?.metadata?.user?._id);
+
+      sessionStorage.setItem(ACCESS_TOKEN, userAccessToken);
 
       dispatch(successToast("Login successfully"));
 
@@ -66,17 +72,11 @@ export const signup = createAsyncThunk(
       const refreshTokenExpired = parseJWT(userRefreshToken).exp * 1000;
       const accessTokenExpired = parseJWT(userAccessToken).exp * 1000;
 
-      Cookies.set(REFRESH_TOKEN, userRefreshToken, {
-        expires: refreshTokenExpired,
-      });
+      sessionStorage.setItem(REFRESH_TOKEN, userRefreshToken);
 
-      Cookies.set(CLIENT_ID, user?.metadata?.user?._id, {
-        expires: refreshTokenExpired,
-      });
+      sessionStorage.setItem(CLIENT_ID, user?.metadata?.user?._id);
 
-      Cookies.set(ACCESS_TOKEN, userAccessToken, {
-        expires: accessTokenExpired,
-      });
+      sessionStorage.setItem(ACCESS_TOKEN, userAccessToken);
 
       dispatch(successToast("Registered successfully"));
       return user;
@@ -94,9 +94,9 @@ export const logout = createAsyncThunk(
       const authService = new AuthService(BASE_URL);
       await authService.logout();
 
-      Cookies.remove(REFRESH_TOKEN);
-      Cookies.remove(CLIENT_ID);
-      Cookies.remove(ACCESS_TOKEN);
+      sessionStorage.removeItem(REFRESH_TOKEN);
+      sessionStorage.removeItem(CLIENT_ID);
+      sessionStorage.removeItem(ACCESS_TOKEN);
 
       dispatch(clearState());
     } catch (err: any) {
@@ -116,17 +116,11 @@ export const refreshToken = createAsyncThunk(
       const refreshTokenExpired = parseJWT(userRefreshToken).exp * 1000;
       const accessTokenExpired = parseJWT(userAccessToken).exp * 1000;
 
-      Cookies.set(REFRESH_TOKEN, userRefreshToken, {
-        expires: refreshTokenExpired,
-      });
+      sessionStorage.setItem(REFRESH_TOKEN, userRefreshToken);
 
-      Cookies.set(ACCESS_TOKEN, userAccessToken, {
-        expires: accessTokenExpired,
-      });
+      sessionStorage.setItem(ACCESS_TOKEN, userAccessToken);
 
-      Cookies.set(CLIENT_ID, response?.metadata?.user?.userId, {
-        expires: refreshTokenExpired,
-      });
+      sessionStorage.setItem(CLIENT_ID, response?.metadata?.user?.userId);
 
       return response;
     } catch (err: any) {
