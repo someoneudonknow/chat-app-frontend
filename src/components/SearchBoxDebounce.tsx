@@ -59,10 +59,12 @@ const SearchBoxDebounce: React.FC<SearchBoxDebouncePropsType> = ({
   );
 
   useEffect(() => {
-    const subscription = watch(() => handleSubmit(handleSearchChange)());
+    const subscription = watch((values) => {
+      handleSearchChange(values);
+    });
 
     return () => subscription.unsubscribe();
-  }, [handleSubmit, watch, handleSearchChange]);
+  }, [watch, handleSearchChange]);
 
   return (
     <Controller

@@ -9,6 +9,7 @@ export enum MessageType {
   TEXT = "text",
   VIDEO = "video",
   FILE = "file",
+  AI = "ai",
 }
 
 export type MessageSender = Pick<
@@ -33,6 +34,7 @@ export interface Message {
   replyTo?: Message | string;
   createdAt: Date;
   isDeleted?: boolean;
+  isBot?: boolean;
 }
 
 export interface TextMessage extends Message {

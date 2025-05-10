@@ -17,11 +17,12 @@ import { SxProps } from "@mui/material";
 
 type MessageItemGroupPropsType = {
   messages: MessagesUnion[];
-  sender: MessageSender;
+  sender: MessageSender | string;
   align: "left" | "right";
   sx?: SxProps;
   showUserName?: boolean;
   showAvatar?: boolean;
+  isBot?: boolean;
 };
 
 const MessageItemGroup: React.FC<MessageItemGroupPropsType> = ({
@@ -31,6 +32,7 @@ const MessageItemGroup: React.FC<MessageItemGroupPropsType> = ({
   sx,
   showUserName,
   showAvatar,
+  isBot,
 }) => {
   const getMessagesItemProps = useCallback(
     (data: MessagesUnion): MessageProps | null => {
@@ -87,6 +89,7 @@ const MessageItemGroup: React.FC<MessageItemGroupPropsType> = ({
       showAvatar={showAvatar}
       align={align}
       sender={sender}
+      isBot={isBot}
     >
       {messages.map((message, i) => {
         const messageOwnProps = getMessagesItemProps(message);

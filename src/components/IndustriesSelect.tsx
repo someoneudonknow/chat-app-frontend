@@ -65,9 +65,12 @@ const IndustriesSelect: React.FC<IndustriesSelectPropsType> = ({
           }}
           disableClearable
           renderOption={(params, option) => {
+            const _params = {...params}
+            delete _params.key
+
             return (
-              <Typography {...params}>
-                {option.name} ({formatNumber(option.usedCount)})
+              <Typography {..._params} key={option._id}>
+                {option.name} ({formatNumber(option?.usedCount || 0)})
               </Typography>
             );
           }}

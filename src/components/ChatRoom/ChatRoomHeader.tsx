@@ -5,15 +5,17 @@ import {
   IconButton,
   Paper,
   Stack,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import React, { useContext, useMemo } from "react";
 import SquareTooltipIconButton from "../UIs/SquareTootltipIconButton";
-import { Call, MoreHoriz, VideoCall } from "@mui/icons-material";
+import { MoreHoriz, VideoCall } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import {
   Conservation,
   ConservationType,
+  ConservationMember,
 } from "../../models/conservation.model";
 import { getConservationItemInfo } from "../../utils";
 import { useSelector } from "react-redux";
@@ -23,8 +25,7 @@ import { useChatRoom } from "./context/ChatRoomProvider";
 import { CallService } from "../../services";
 import { BASE_URL } from "../../constants/api-endpoints";
 import { useSocket } from "../../hooks";
-import { CallEventName, IncommingCallInfo } from "../../constants/types";
-import { ConservationItem } from "../Conservation";
+import { CallEventName } from "../../constants/types";
 import { toast } from "react-toastify";
 import { useCall } from "../../contexts/CallContext";
 
@@ -44,24 +45,36 @@ const ChatRoomHeader: React.FC<ChatRoomHeaderPropsType> = ({
   );
   const { socket } = useSocket();
   const chatRoomCtx = useChatRoom();
-  const conservationInfo = getConservationItemInfo(conservation, currentUserId);
+  const conservationInfo = getConservationItemInfo(
+    conservation,
+    currentUserId || ""
+  );
   const { startCall } = useCall();
 
   const onlineState = useMemo<string>(() => {
     switch (conservation.type) {
       case ConservationType.INBOX: {
-        const isUserOnline = conservation.members.find(
-          (m) => m.user._id !== currentUserId
-        )?.user.isOnline;
+        const member = conservation.members.find((m) => {
+          if (typeof m === "string") return false;
+          const member = m as ConservationMember;
+          return member.user && member.user._id !== currentUserId;
+        }) as ConservationMember | undefined;
 
-        return isUserOnline ? "Online" : "Offline";
+        return member?.user.isOnline ? "Online" : "Offline";
       }
       case ConservationType.GROUP: {
-        const numberOfOnlineUser = conservation.members.reduce((a, m) => {
-          const isUserOnline = m.user._id !== currentUserId && m.user.isOnline;
+        const numberOfOnlineUser = conservation.members.reduce((count, m) => {
+          if (typeof m === "string") return count;
 
-          if (isUserOnline) return a + 1;
-          else return a;
+          const member = m as ConservationMember;
+          if (
+            member.user &&
+            member.user._id !== currentUserId &&
+            member.user.isOnline
+          ) {
+            return count + 1;
+          }
+          return count;
         }, 0);
 
         if (numberOfOnlineUser <= 0) return "No ones are online at this time.";
@@ -73,44 +86,9 @@ const ChatRoomHeader: React.FC<ChatRoomHeaderPropsType> = ({
     }
   }, [conservation, currentUserId]);
 
-  const handleVoiceCallClick = async () => {
-    try {
-      const { status, metadata } = await callService.initCall({
-        conservationId: conservation._id,
-        mediaType: "AUDIO_CALL",
-      });
-
-      if (status === 200) {
-        const { call, channel, rtcToken, rtmToken, rtcUid, rtmUid } = metadata;
-
-        socket?.emit(CallEventName.CREATE_CALL, {
-          conservationId: conservation._id,
-          callerId: currentUserId,
-          from: conservationInfo?.name,
-          avatar: conservationInfo?.cover,
-          callId: call._id,
-          channelName: channel,
-          mediaType: call.mediaType,
-        });
-
-        startCall({
-          callId: call._id,
-          rtcToken,
-          rtmToken,
-          channel,
-          rtcUid,
-          rtmUid,
-          mediaType: call.mediaType,
-          type: call.type,
-        });
-      }
-    } catch (e: any) {
-      toast.error(e.message);
-    }
-  };
-
   const handleVideoCallClick = async () => {
     try {
+      console.log("Initiating video call for conservation:", conservation._id);
       const { status, metadata } = await callService.initCall({
         conservationId: conservation._id,
         mediaType: "VIDEO_CALL",
@@ -118,8 +96,14 @@ const ChatRoomHeader: React.FC<ChatRoomHeaderPropsType> = ({
 
       if (status === 200) {
         const { call, channel, rtcToken, rtmToken, rtcUid, rtmUid } = metadata;
+        console.log("Call initiated successfully:", { call, channel, rtcUid });
 
-        socket?.emit(CallEventName.CREATE_CALL, {
+        toast.info("Initiating video call...", {
+          position: "top-center",
+          autoClose: 2000,
+        });
+
+        const callPayload = {
           conservationId: conservation._id,
           callerId: currentUserId,
           from: conservationInfo?.name,
@@ -127,7 +111,14 @@ const ChatRoomHeader: React.FC<ChatRoomHeaderPropsType> = ({
           callId: call._id,
           channelName: channel,
           mediaType: call.mediaType,
-        });
+        };
+
+        console.log(
+          "Emitting call event:",
+          CallEventName.CREATE_CALL,
+          callPayload
+        );
+        socket?.emit(CallEventName.CREATE_CALL, callPayload);
 
         startCall({
           callId: call._id,
@@ -141,7 +132,8 @@ const ChatRoomHeader: React.FC<ChatRoomHeaderPropsType> = ({
         });
       }
     } catch (e: any) {
-      toast.error(e.message);
+      console.error("Failed to start video call:", e);
+      toast.error(e.message || "Failed to start video call");
     }
   };
 
@@ -164,8 +156,8 @@ const ChatRoomHeader: React.FC<ChatRoomHeaderPropsType> = ({
           {conservationInfo?.cover &&
             Array.isArray(conservationInfo?.cover) && (
               <AvatarGroup>
-                {conservationInfo.cover.map((avt) => (
-                  <Avatar src={avt || undefined} />
+                {conservationInfo.cover.map((avt, index) => (
+                  <Avatar key={index} src={avt || undefined} />
                 ))}
               </AvatarGroup>
             )}
@@ -190,24 +182,25 @@ const ChatRoomHeader: React.FC<ChatRoomHeaderPropsType> = ({
           </Box>
         </Box>
         <Stack spacing={2} direction="row">
-          {/* <SquareTooltipIconButton
-            placement="bottom"
-            sx={{ borderRadius: "50%", aspectRatio: 1 / 1 }}
-            title="Audio call"
-            color="info"
-            onClick={handleVoiceCallClick}
-          >
-            <Call />
-          </SquareTooltipIconButton> */}
-          <SquareTooltipIconButton
-            onClick={handleVideoCallClick}
-            placement="bottom"
-            sx={{ borderRadius: "50%", aspectRatio: 1 / 1 }}
-            title="Video call"
-            color="info"
-          >
-            <VideoCall />
-          </SquareTooltipIconButton>
+          <Tooltip title="Start video call" placement="bottom">
+            <SquareTooltipIconButton
+              onClick={handleVideoCallClick}
+              placement="bottom"
+              sx={{
+                borderRadius: "50%",
+                aspectRatio: 1 / 1,
+                backgroundColor: (theme) => theme.palette.primary.main,
+                color: "#fff",
+                "&:hover": {
+                  backgroundColor: (theme) => theme.palette.primary.dark,
+                },
+              }}
+              title="Video call"
+              color="inherit"
+            >
+              <VideoCall />
+            </SquareTooltipIconButton>
+          </Tooltip>
           <IconButton
             sx={{ aspectRatio: 1 / 1 }}
             onClick={() => onShowSideBarClick && onShowSideBarClick()}

@@ -59,29 +59,49 @@ const MessagesList = forwardRef<InfiniteScrollRef, MessagesListPropsType>(
           messages.reverse();
 
           const groupedResult: {
-            sender: MessageSender;
+            sender: MessageSender | string;
             messages: MessagesUnion[];
+            isBot?: boolean;
           }[] = [];
 
+          // Initialize with the first message
           groupedResult.push({
-            sender: messages[0].sender as MessageSender,
+            sender: messages[0].sender,
             messages: [messages[0]],
+            isBot: messages[0].isBot,
           });
 
           for (let i = 1; i < messages.length; i++) {
-            const currentSenderId = (messages[i]?.sender as MessageSender)?._id;
+            const currentMessage = messages[i];
+            const lastGroup = groupedResult[groupedResult.length - 1];
+
+            // Check if the current message is from the same sender and has the same bot status
+            let isSameSender = false;
 
             if (
-              currentSenderId ===
-              groupedResult[groupedResult.length - 1].sender._id
+              typeof currentMessage.sender === "string" &&
+              typeof lastGroup.sender === "string"
             ) {
-              groupedResult[groupedResult.length - 1].messages.push(
-                messages[i]
-              );
+              isSameSender = currentMessage.sender === lastGroup.sender;
+            } else if (
+              typeof currentMessage.sender !== "string" &&
+              typeof lastGroup.sender !== "string"
+            ) {
+              isSameSender =
+                (currentMessage.sender as MessageSender)._id ===
+                (lastGroup.sender as MessageSender)._id;
+            }
+
+            const isSameBotStatus = currentMessage.isBot === lastGroup.isBot;
+
+            // Group messages only if they have the same sender and bot status
+            if (isSameSender && isSameBotStatus) {
+              lastGroup.messages.push(currentMessage);
             } else {
               groupedResult.push({
-                sender: messages[i].sender as MessageSender,
-                messages: [messages[i]],
+                sender: currentMessage.sender,
+                messages: [currentMessage],
+                isBot: currentMessage.isBot,
               });
             }
           }
@@ -94,8 +114,16 @@ const MessagesList = forwardRef<InfiniteScrollRef, MessagesListPropsType>(
               >
                 {sentDate}
               </Typography>
-              {groupedResult.map((g) => {
-                const isSender = currentUserId === g.sender._id;
+              {groupedResult.map((g, index) => {
+                // Handle AI messages differently
+                const isAIMessage = g.isBot || g.sender === "ai";
+
+                // For regular messages, determine if the current user is the sender
+                const isSender =
+                  !isAIMessage &&
+                  typeof g.sender !== "string" &&
+                  currentUserId === g.sender._id;
+
                 const align = isSender ? "right" : "left";
                 const borderRadiusEnd = "20px";
                 const borderRadiusStart = "5px";
@@ -113,20 +141,27 @@ const MessagesList = forwardRef<InfiniteScrollRef, MessagesListPropsType>(
                       borderBottomLeftRadius: borderRadiusStart,
                     };
 
+                // Set special styling for AI messages
+                const messageBackground = isAIMessage
+                  ? theme.palette.info[theme.palette.mode]
+                  : isSender
+                  ? theme.palette.primary[theme.palette.mode]
+                  : theme.palette.secondary[theme.palette.mode];
+
                 return (
                   <MessageItemGroup
+                    key={index}
                     sx={{
-                      bgcolor: isSender
-                        ? theme.palette.primary[theme.palette.mode]
-                        : theme.palette.secondary[theme.palette.mode],
+                      bgcolor: messageBackground,
                       color: "white",
                       ...messageBorderRadius,
                     }}
-                    showAvatar={!isSender}
-                    showUserName={!isSender}
+                    showAvatar={!isSender || isAIMessage}
+                    showUserName={!isSender || isAIMessage}
                     align={align}
                     sender={g.sender}
                     messages={g.messages}
+                    isBot={g.isBot}
                   />
                 );
               })}

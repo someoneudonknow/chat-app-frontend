@@ -41,11 +41,7 @@ const Root: React.FC = () => {
       }
     };
 
-    fetchUserData();
-
-    return () => {
-      console.log("unmounted");
-    };
+    // fetchUserData();
   }, []);
 
   useEffect(() => {

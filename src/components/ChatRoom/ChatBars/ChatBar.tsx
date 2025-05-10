@@ -4,6 +4,7 @@ import {
   GifBox,
   LocationOn,
   Mic,
+  Send,
   ThumbUp,
 } from "@mui/icons-material";
 import { Box, IconButton, Paper, Stack, Tooltip } from "@mui/material";
@@ -209,11 +210,6 @@ const ChatBar = memo<ChatBarPropsType>(({ onSubmit, shouldShow }) => {
                           <Mic />
                         </IconButton>
                       </Tooltip>
-                      {/* <Tooltip title="Send locations" placement="top">
-                        <IconButton color="info">
-                          <LocationOn />
-                        </IconButton>
-                      </Tooltip> */}
                     </Stack>
                   </Paper>
                 )}
@@ -257,19 +253,6 @@ const ChatBar = memo<ChatBarPropsType>(({ onSubmit, shouldShow }) => {
               emojiCanMount={emojiCanMount}
             />
           )}
-          <Tooltip title="Send like">
-            <IconButton
-              sx={{
-                transition: "all ease-in-out .1s",
-                "&:hover": {
-                  transform: "rotate(-20deg)",
-                },
-              }}
-              color="info"
-            >
-              <ThumbUp />
-            </IconButton>
-          </Tooltip>
         </Paper>
       </motion.div>
     </>

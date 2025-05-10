@@ -81,7 +81,7 @@ const InterestsForm: React.FC<InterestsFormPropsType> = ({
       setSearchLoading(true);
       const interestService = new InterestService(BASE_URL);
       const searchResult = await interestService.searchInterests(val);
-
+      console.log("Checking...", searchResult);
       setInterests(searchResult.metadata?.list ?? []);
     } catch (e: any) {
       toast.error(e.message || "Something went wrong");

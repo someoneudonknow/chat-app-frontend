@@ -16,6 +16,7 @@ export type MessageItemBaseProps = {
   align?: "left" | "right";
   showUserName?: boolean;
   showAvatar?: boolean;
+  isBot?: boolean;
 };
 
 export type MessageBaseProps = {

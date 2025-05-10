@@ -40,6 +40,7 @@ type ChatRoomState = {
   messagesList: MessagesUnion[];
   loading: boolean;
   typingMembers: string[];
+  aiIsTyping: boolean;
   nextCursor: string | null;
   hasMoreMessages: boolean;
   sidebarView: SidebarView;
@@ -62,6 +63,7 @@ const initChatRoomState: ChatRoomState = {
   chatBarType: "regular",
   messagesList: [],
   typingMembers: [],
+  aiIsTyping: false,
   loading: false,
   nextCursor: null,
   hasMoreMessages: true,
@@ -92,6 +94,7 @@ enum EventName {
   CANCEL_TYPING = "conservation/cancel-typing",
   ONLINE_USER = "users/online-user",
   OFFLINE_USER = "users/offline-user",
+  AI_TYPING_INDICATOR = "ai/typing",
 }
 
 const ChatRoomProvider: React.FC<ChatRoomProviderPropsType> = ({
@@ -111,9 +114,9 @@ const ChatRoomProvider: React.FC<ChatRoomProviderPropsType> = ({
   const [sidebarView, setSidebarView] = useState<SidebarView>({
     viewName: "primary",
   });
+  const [aiIsTyping, setAiIsTyping] = useState<boolean>(false);
   const { socket } = useSocket();
 
-  // use effect for socket event handler
   useEffect(() => {
     if (!conservation) return;
 
@@ -171,6 +174,12 @@ const ChatRoomProvider: React.FC<ChatRoomProviderPropsType> = ({
       setTypingMembers((prev) => prev.filter((mid) => mid !== memberId));
     });
 
+    socket?.on(EventName.AI_TYPING_INDICATOR, (data) => {
+      if (data.conservationId === conservation._id) {
+        setAiIsTyping(data.isTyping);
+      }
+    });
+
     socket?.emit(EventName.SETUP_CONSERVATION, conservation);
 
     return () => {
@@ -178,6 +187,7 @@ const ChatRoomProvider: React.FC<ChatRoomProviderPropsType> = ({
       socket?.off(EventName.TYPING);
       socket?.off(EventName.CANCEL_TYPING);
       socket?.emit(EventName.lEAVE_CONSERVATION, conservation?._id);
+      socket?.off(EventName.AI_TYPING_INDICATOR);
     };
   }, [conservation, socket]);
 
@@ -230,6 +240,7 @@ const ChatRoomProvider: React.FC<ChatRoomProviderPropsType> = ({
       nextCursor,
       hasMoreMessages,
       sidebarView,
+      aiIsTyping,
       setSidebarView: (view: SidebarView) => setSidebarView(view),
       setMessagesList: (messages: MessagesUnion[]) => setMessagesList(messages),
       hideSearchMessageBox: () => setSearchMessageBoxShow(false),
@@ -250,6 +261,7 @@ const ChatRoomProvider: React.FC<ChatRoomProviderPropsType> = ({
       searchMessageBoxShow,
       typingMembers,
       sidebarView,
+      aiIsTyping,
       fetchNextMessages,
     ]
   );

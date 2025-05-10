@@ -6,6 +6,7 @@ import useKeyPress from "./useKeyPress";
 import useClickOutside from "./useClickOutside";
 import useSocket from "./useSocket";
 import useHorizontalScroll from "./useHorizontalScroll";
+import useMention from "./useMention";
 
 export {
   useSocket,
@@ -16,4 +17,5 @@ export {
   useKeyPress,
   useClickOutside,
   useHorizontalScroll,
+  useMention,
 };

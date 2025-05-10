@@ -54,6 +54,14 @@ const IncomingCallSnackBar: React.FC<IncomingCallSnackBarPropsType> = ({
     VIDEO_CALL: "video call",
   };
 
+  console.log("IncomingCallSnackBar rendered:", {
+    open,
+    mediaType,
+    avatars,
+    from,
+    callId,
+  });
+
   return (
     <Snackbar
       anchorOrigin={{ horizontal: "center", vertical: "top" }}

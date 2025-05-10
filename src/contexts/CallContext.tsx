@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useMemo,
   useState,
+  useRef,
 } from "react";
 import { useSocket } from "../hooks";
 import { CallEventName, IncommingCallInfo } from "../constants/types";
@@ -32,6 +33,12 @@ type StartCallFuncParams = {
 type CallContextType = {
   startCall: (payload: StartCallFuncParams) => void;
   acceptCall: (payload: { callId: Call["_id"] }) => void;
+  rejectCall: (callId: Call["_id"]) => void;
+  endCurrentCall: () => Promise<void>;
+  isInCall: boolean;
+  currentCallId: string | null;
+  callStatus: "idle" | "connecting" | "connected" | "reconnecting" | "error";
+  callError: string | null;
 };
 
 type CallContextProviderPropsType = {
@@ -41,6 +48,12 @@ type CallContextProviderPropsType = {
 const initVal: CallContextType = {
   startCall: () => {},
   acceptCall: () => {},
+  rejectCall: () => {},
+  endCurrentCall: async () => {},
+  isInCall: false,
+  currentCallId: null,
+  callStatus: "idle",
+  callError: null,
 };
 
 export const CallContext = createContext(initVal);
@@ -51,26 +64,132 @@ const CallProvider: React.FC<CallContextProviderPropsType> = ({ children }) => {
   const [incommingCall, setIncommingCall] = useState<IncommingCallInfo | null>(
     null
   );
+  const [isInCall, setIsInCall] = useState<boolean>(false);
+  const [currentCallId, setCurrentCallId] = useState<string | null>(null);
+  const [callStatus, setCallStatus] = useState<
+    "idle" | "connecting" | "connected" | "reconnecting" | "error"
+  >("idle");
+  const [callError, setCallError] = useState<string | null>(null);
+  const reconnectAttempts = useRef<number>(0);
+  const maxReconnectAttempts = 3;
+
   const currentUser = useSelector((state: RootState) => state.user.currentUser);
   const { socket } = useSocket();
   const navigate = useNavigate();
 
   useEffect(() => {
-    socket?.on(CallEventName.NEW_CALL_ARRIVED, (payload: IncommingCallInfo) => {
-      // setIncommingCall((prev) => [...prev, payload]);
-      setIncommingCall(payload);
-    });
+    const handleDisconnect = () => {
+      if (isInCall) {
+        setCallStatus("reconnecting");
+        toast.warning("Connection lost. Attempting to reconnect...", {
+          position: "top-center",
+          autoClose: false,
+          toastId: "call-reconnect",
+        });
+      }
+    };
 
-    socket?.on(CallEventName.CALL_END, (payload: string) => {
-      // setIncommingCall((prev) => prev.filter((c) => c.callId !== payload));
-      setIncommingCall(null);
-    });
+    const handleReconnect = () => {
+      if (isInCall) {
+        reconnectAttempts.current += 1;
+
+        if (reconnectAttempts.current <= maxReconnectAttempts) {
+          toast.update("call-reconnect", {
+            render: "Reconnecting to call...",
+            type: "info",
+            autoClose: 2000,
+          });
+
+          if (currentCallId && socket && currentUser) {
+            socket.emit(CallEventName.SETUP, {
+              callId: currentCallId,
+              user: {
+                id: currentUser._id,
+                name: currentUser?.userName || currentUser?.email,
+                avatar: currentUser?.photo,
+              },
+            });
+            setCallStatus("connected");
+          }
+        } else {
+          toast.update("call-reconnect", {
+            render: "Failed to reconnect after multiple attempts",
+            type: "error",
+            autoClose: 3000,
+          });
+          setCallStatus("error");
+          setCallError("Connection lost. Unable to reconnect to the call.");
+          endCall(currentCallId);
+        }
+      }
+    };
+
+    socket?.on("disconnect", handleDisconnect);
+    socket?.on("reconnect", handleReconnect);
 
     return () => {
-      socket?.off(CallEventName.NEW_CALL_ARRIVED);
-      socket?.off(CallEventName.CALL_END);
+      socket?.off("disconnect", handleDisconnect);
+      socket?.off("reconnect", handleReconnect);
     };
-  }, [socket]);
+  }, [socket, isInCall, currentCallId, currentUser]);
+
+  useEffect(() => {
+    const handleNewCall = (payload: IncommingCallInfo) => {
+      console.log("New call received:", payload);
+      if (!isInCall) {
+        setIncommingCall(payload);
+      } else {
+        if (currentUser && payload.callId) {
+          console.log("Already in a call, rejecting new call");
+          socket?.emit(CallEventName.CALL_REJECT, {
+            callId: payload.callId,
+            user: currentUser,
+          });
+        }
+      }
+    };
+
+    const handleCallEnd = (payload: string) => {
+      console.log("Call ended:", payload, "Current call:", currentCallId);
+      if (payload === currentCallId) {
+        cleanupCall();
+
+        toast.info("Call has ended", {
+          position: "top-center",
+          autoClose: 3000,
+        });
+
+        if (window.location.pathname.includes("/call")) {
+          navigate("/user/chat");
+        }
+      }
+      setIncommingCall(null);
+    };
+
+    if (socket) {
+      console.log("Setting up socket listeners for calls");
+      socket.on(CallEventName.NEW_CALL_ARRIVED, handleNewCall);
+      socket.on(CallEventName.CALL_END, handleCallEnd);
+    }
+
+    return () => {
+      if (socket) {
+        console.log("Removing socket listeners for calls");
+        socket.off(CallEventName.NEW_CALL_ARRIVED, handleNewCall);
+        socket.off(CallEventName.CALL_END, handleCallEnd);
+      }
+    };
+  }, [socket, currentUser, isInCall, currentCallId, navigate]);
+
+  const cleanupCall = useCallback(() => {
+    setIsInCall(false);
+    setCurrentCallId(null);
+    setCallStatus("idle");
+    setCallError(null);
+    reconnectAttempts.current = 0;
+  }, []);
+
+  // TODO: fix remote cannot receive new call noti in second time
 
   const startCall = useCallback(
     ({
@@ -83,28 +202,51 @@ const CallProvider: React.FC<CallContextProviderPropsType> = ({ children }) => {
       mediaType,
       callId,
     }: StartCallFuncParams) => {
-      const strWindowFeatures = `location=yes,scrollbars=yes,status=yes,width=${screen.width},height=${screen.height}`;
+      try {
+        setCallStatus("connecting");
+        setIsInCall(true);
+        setCurrentCallId(callId);
+        reconnectAttempts.current = 0;
 
-      const URL = `/user/call?call_id=${encodeURIComponent(
-        callId
-      )}&rtc_token=${encodeURIComponent(
-        rtcToken
-      )}&rtm_token=${encodeURIComponent(rtmToken)}&channel=${encodeURIComponent(
-        channel
-      )}&rtc_uid=${encodeURIComponent(
-        rtcUid
-      )}&rtm_uid=${rtmUid}&media_type=${encodeURIComponent(
-        mediaType
-      )}&type=${encodeURIComponent(type)}`;
-      // window.open(URL, "_blank", strWindowFeatures);
-      navigate(URL);
+        const URL = `/user/call?call_id=${encodeURIComponent(
+          callId
+        )}&rtc_token=${encodeURIComponent(
+          rtcToken
+        )}&rtm_token=${encodeURIComponent(
+          rtmToken
+        )}&channel=${encodeURIComponent(channel)}&rtc_uid=${encodeURIComponent(
+          rtcUid
+        )}&rtm_uid=${rtmUid}&media_type=${encodeURIComponent(
+          mediaType
+        )}&type=${encodeURIComponent(type)}`;
+
+        navigate(URL);
+
+        setTimeout(() => {
+          if (isInCall) {
+            setCallStatus("connected");
+          }
+        }, 2000);
+      } catch (error) {
+        console.error("Error starting call:", error);
+        setCallStatus("error");
+        setCallError("Failed to start call");
+        cleanupCall();
+      }
     },
-    [navigate]
+    [navigate, cleanupCall]
   );
 
   const acceptCall = useCallback(
     async ({ callId }: { callId: Call["_id"] }) => {
       try {
+        setCallStatus("connecting");
+
+        toast.info("Joining call...", {
+          position: "top-center",
+          autoClose: 2000,
+        });
+
         const { status, metadata } = await callService.joinCall({ callId });
 
         if (status === 200) {
@@ -121,32 +263,119 @@ const CallProvider: React.FC<CallContextProviderPropsType> = ({ children }) => {
             type: call.type,
             mediaType: call.mediaType,
           });
+        } else {
+          throw new Error("Failed to join call");
         }
       } catch (err: any) {
-        toast.error(err.message);
+        toast.error(err.message || "Failed to join call");
+        setCallStatus("error");
+        setCallError(err.message || "Failed to join call");
+        cleanupCall();
       }
     },
-    [startCall]
+    [startCall, cleanupCall]
   );
 
   const rejectCall = useCallback(
     async (callId: Call["_id"]) => {
       if (socket && currentUser) {
-        socket?.emit(CallEventName.CALL_REJECT, {
-          callId,
-          user: currentUser,
-        });
+        try {
+          socket.emit(CallEventName.CALL_REJECT, {
+            callId,
+            user: currentUser,
+          });
+        } catch (error) {
+          console.error("Error rejecting call:", error);
+        }
       }
     },
     [socket, currentUser]
   );
 
+  const endCall = useCallback(
+    async (callId: string | null) => {
+      if (!callId) return;
+
+      try {
+        await callService.endCall({ callId });
+      } catch (error) {
+        console.error("Error ending call:", error);
+      } finally {
+        cleanupCall();
+      }
+    },
+    [cleanupCall]
+  );
+
+  const endCurrentCall = useCallback(async () => {
+    if (!currentCallId || !currentUser) return;
+
+    try {
+      setCallStatus("idle");
+
+      let participants: string[] = [];
+      try {
+        socket?.emit(
+          "calls/get-participants",
+          { callId: currentCallId },
+          (response: string[]) => {
+            participants = response || [];
+          }
+        );
+      } catch (err) {
+        console.error("Error getting participants:", err);
+      }
+
+      if (participants.length <= 1) {
+        await callService.endCall({ callId: currentCallId });
+      } else {
+        const userData = {
+          name: currentUser?.userName || currentUser?.email,
+          id: currentUser._id,
+        };
+
+        socket?.emit(CallEventName.CALLEE_LEAVE, {
+          callId: currentCallId,
+          user: userData,
+        });
+      }
+
+      cleanupCall();
+
+      if (window.location.pathname.includes("/call")) {
+        navigate("/user/chat");
+      }
+    } catch (error) {
+      console.error("Error ending current call:", error);
+      cleanupCall();
+
+      if (window.location.pathname.includes("/call")) {
+        navigate("/user/chat");
+      }
+    }
+  }, [currentCallId, currentUser, socket, navigate, cleanupCall]);
+
   const _value = useMemo(
     () => ({
       startCall,
       acceptCall,
+      rejectCall,
+      endCurrentCall,
+      isInCall,
+      currentCallId,
+      callStatus,
+      callError,
     }),
-    [startCall, acceptCall]
+    [
+      startCall,
+      acceptCall,
+      rejectCall,
+      endCurrentCall,
+      isInCall,
+      currentCallId,
+      callStatus,
+      callError,
+    ]
   );
 
   return (

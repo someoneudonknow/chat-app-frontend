@@ -11,6 +11,7 @@ export const AttachmentsSidebarTabNames = {
 export type SubmitedMessageType = {
   type: MessageType;
   content: string | IGif | File[] | Blob | RecognizableFile[];
+  isAI?: boolean;
 };
 
 export type AttachmentsSidebarTabNamesKey =

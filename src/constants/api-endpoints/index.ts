@@ -47,3 +47,6 @@ export const MESSAGE_ATTACHMENTS =
 export const CALL = "calls";
 export const JOIN_CALL = "calls/join";
 export const END_CALL = "calls/end";
+
+// ai endpoints
+export const AI_CHAT = "ai/chat";

@@ -151,11 +151,12 @@ export type RecognizableFile = {
 
 export type IncommingCallInfo = {
   from: string;
-  avatar: string[];
+  avatar: string | string[];
   mediaType: CallMediaType;
   callId: string;
   channelName: string;
   callerId: string;
+  conservationId?: string;
 };
 
 export enum CallEventName {

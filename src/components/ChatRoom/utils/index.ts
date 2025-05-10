@@ -44,7 +44,6 @@ export const sendMessage = async (
         conservationId,
         data.content as string
       );
-
       break;
     case MessageType.GIF: {
       await messageService.sendGifMessage(conservationId, data.content as IGif);

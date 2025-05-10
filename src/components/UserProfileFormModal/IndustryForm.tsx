@@ -30,6 +30,7 @@ const IndustryForm: React.FC<IndustryFormPropsType> = ({ onSubmitSuccess }) => {
 
     try {
       setSubmitLoading(true);
+
       await dispatch(updateProfile({ industry: selectedIndustry._id }));
     } catch (err: any) {
       console.error(err);

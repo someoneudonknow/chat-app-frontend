@@ -21,6 +21,10 @@ class CallService extends BaseService {
   endCall = async ({ callId }: { callId: Call["_id"] }) => {
     return await this.post(`${END_CALL}/${callId}`, {}, {});
   };
+
+  getCallInfo = async (callId: string) => {
+    return await this.get(`${CALL}/${callId}`);
+  };
 }
 
 export default CallService;

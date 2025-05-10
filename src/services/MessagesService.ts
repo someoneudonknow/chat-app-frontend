@@ -158,12 +158,22 @@ class MessagesService extends BaseService {
     } as GifMessage);
   }
 
-  async sendTextMessage(conservationId: string, text: string): Promise<void> {
-    return await this.sendMessage({
+  async sendTextMessage(
+    conservationId: string,
+    text: string,
+    isAI: boolean = false
+  ): Promise<void> {
+    const payload: any = {
       type: MessageType.TEXT,
       conservation: conservationId,
       content: { text: text },
-    } as TextMessage);
+    };
+
+    if (isAI) {
+      payload.isBot = true;
+    }
+
+    return await this.post(`${MESSAGE}`, {}, payload);
   }
 
   async sendMessage(message: MessagesUnion) {

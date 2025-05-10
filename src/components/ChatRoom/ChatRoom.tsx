@@ -3,7 +3,7 @@ import {
   Conservation,
   ConservationMember,
 } from "../../models/conservation.model";
-import { Box, Paper } from "@mui/material";
+import { Box, Paper, Typography } from "@mui/material";
 import { MessagesList } from "../Messages";
 import ChatRoomHeader from "./ChatRoomHeader";
 import ChatBar from "./ChatBars/ChatBar";
@@ -16,6 +16,9 @@ import MessageLoader from "../UIs/MessageLoader";
 import UserIsTypingAnimation from "../UIs/UserIsTypingAnimation";
 import { getTypingStateText, sendMessage } from "./utils";
 import { ChatRoomSideBar } from "./ChatRoomSideBar";
+import AskAssistantButton from "./AskAssistantButton";
+import { MessageType } from "../../models/message.model";
+import AITypingIndicator from "./AITypingIndicator";
 
 type ChatRoomPropsType = {
   conservation: Conservation;
@@ -31,6 +34,7 @@ const ChatRoom: React.FC<ChatRoomPropsType> = ({ conservation }) => {
     hasMoreMessages,
     loading,
     typingMembers,
+    aiIsTyping,
     conservation: currentConservation,
     chatBarType,
   } = useChatRoom();
@@ -60,8 +64,31 @@ const ChatRoom: React.FC<ChatRoomPropsType> = ({ conservation }) => {
     [setLoading, conservation._id]
   );
 
+  const handleAskAssistant = useCallback(
+    async (question: string) => {
+      setLoading(true);
+
+      try {
+        const assistantQuestion = `@assistant ${question}`;
+        await sendMessage(
+          {
+            type: MessageType.TEXT,
+            content: assistantQuestion,
+          },
+          conservation._id
+        );
+        messageListRef.current?.scrollToBottom();
+      } catch (err: any) {
+        toast.error(err.message);
+      }
+
+      setLoading(false);
+    },
+    [setLoading, conservation._id]
+  );
+
   return (
-    <Paper sx={{ flex: 1, display: "flex" }}>
+    <Paper sx={{ flex: 1, display: "flex", position: "relative" }}>
       <Box
         sx={{
           flex: 1,
@@ -83,6 +110,7 @@ const ChatRoom: React.FC<ChatRoomPropsType> = ({ conservation }) => {
               hasMore={hasMoreMessages}
             />
             {loading && <MessageLoader />}
+            {aiIsTyping && <AITypingIndicator />}
             {typingMembers.length > 0 && (
               <Box
                 component="div"
@@ -108,6 +136,7 @@ const ChatRoom: React.FC<ChatRoomPropsType> = ({ conservation }) => {
                 onSubmit={handleSendMessage}
               />
             )}
+            <AskAssistantButton onAskAssistant={handleAskAssistant} />
           </>
         )}
       </Box>
