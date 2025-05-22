@@ -95,6 +95,8 @@ enum EventName {
   ONLINE_USER = "users/online-user",
   OFFLINE_USER = "users/offline-user",
   AI_TYPING_INDICATOR = "ai/typing",
+  MESSAGE_UPDATED = "message:updated",
+  CALL_ENDED = "call:ended",
 }
 
 const ChatRoomProvider: React.FC<ChatRoomProviderPropsType> = ({
@@ -121,7 +123,46 @@ const ChatRoomProvider: React.FC<ChatRoomProviderPropsType> = ({
     if (!conservation) return;
 
     socket?.on(EventName.NEW_MESSAGE, (message: MessagesUnion) => {
+      console.log("New message>>>>>>>>>>>>>>>:", message);
       setMessagesList((prev) => [message, ...prev]);
+    });
+
+    socket?.on(EventName.MESSAGE_UPDATED, ({ messageId, updates }) => {
+      console.log("Message updated:", messageId, updates);
+      setMessagesList((prev) =>
+        prev.map((message) =>
+          message._id === messageId
+            ? {
+                ...message,
+                content: {
+                  ...message.content,
+                  ...updates,
+                },
+              }
+            : message
+        )
+      );
+    });
+
+    socket?.on(EventName.CALL_ENDED, ({ messageId, callId }) => {
+      console.log(
+        "Call ended, refreshing messages to show call message:",
+        messageId,
+        callId
+      );
+      // Refresh messages to get the new call message
+      const messageService = new MessagesService(BASE_URL);
+      messageService
+        .getMessagesInConservation(conservation._id, 20)
+        .then((response) => {
+          const newMessages = response?.metadata?.list || [];
+          setMessagesList(newMessages);
+          setNextCursor(response?.metadata?.next || null);
+          setHasMoreMessages(response?.metadata?.hasNext || false);
+        })
+        .catch((err) => {
+          console.error("Error fetching messages after call ended:", err);
+        });
     });
 
     socket?.on(EventName.ONLINE_USER, (payload) => {
@@ -188,6 +229,8 @@ const ChatRoomProvider: React.FC<ChatRoomProviderPropsType> = ({
       socket?.off(EventName.CANCEL_TYPING);
       socket?.emit(EventName.lEAVE_CONSERVATION, conservation?._id);
       socket?.off(EventName.AI_TYPING_INDICATOR);
+      socket?.off(EventName.MESSAGE_UPDATED);
+      socket?.off(EventName.CALL_ENDED);
     };
   }, [conservation, socket]);
 

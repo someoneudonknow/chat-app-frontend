@@ -7,6 +7,7 @@ import AudioMessage from "./AudioMessage";
 import ImageMessage from "./ImageMessage";
 import VideoMessage from "./VideoMessage";
 import FileMessage from "./FileMessage/FileMessage";
+import CallMessage from "./CallMessage";
 
 type MessageItemPropsType = {
   props: MessageProps;
@@ -27,6 +28,8 @@ const MessageItem: React.FC<MessageItemPropsType> = ({ props }) => {
         return <VideoMessage {...props} />;
       case MessageType.FILE:
         return <FileMessage {...props} />;
+      case MessageType.CALL:
+        return <CallMessage {...props} />;
       default:
         return null;
     }

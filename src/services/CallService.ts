@@ -25,6 +25,46 @@ class CallService extends BaseService {
   getCallInfo = async (callId: string) => {
     return await this.get(`${CALL}/${callId}`);
   };
+
+  startRecording = async ({
+    callId,
+    uid,
+    channelName,
+  }: {
+    callId: string;
+    uid: string;
+    channelName: string;
+  }) => {
+    return await this.post(
+      `${CALL}/record/start/${callId}`,
+      {},
+      { uid, channelName }
+    );
+  };
+
+  pauseRecording = async (callId: string) => {
+    return await this.post(`${CALL}/record/pause/${callId}`, {}, {});
+  };
+
+  resumeRecording = async (callId: string) => {
+    return await this.post(`${CALL}/record/resume/${callId}`, {}, {});
+  };
+
+  stopRecording = async (callId: string) => {
+    return await this.post(`${CALL}/record/stop/${callId}`, {}, {});
+  };
+
+  getCallSummary = async (
+    callId: string,
+    maxLength: number,
+    language = "vi"
+  ) => {
+    return await this.post(
+      `${CALL}/summary`,
+      {},
+      { callId, maxLength, language }
+    );
+  };
 }
 
 export default CallService;

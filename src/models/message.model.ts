@@ -10,6 +10,7 @@ export enum MessageType {
   VIDEO = "video",
   FILE = "file",
   AI = "ai",
+  CALL = "call",
 }
 
 export type MessageSender = Pick<
@@ -100,10 +101,25 @@ export interface VideoMessage extends Message {
   };
 }
 
+export interface CallMessage extends Message {
+  content: {
+    callType: "audio" | "video";
+    duration: number;
+    callStartedAt: Date;
+    callEndedAt: Date;
+    isRecorded?: boolean;
+    summary?: string;
+    participants?: string[];
+    callId?: string;
+    recordingUrls?: string[];
+  };
+}
+
 export type MessagesUnion =
   | VideoMessage
   | TextMessage
   | GifMessage
   | FileMessage
   | ImageMessage
-  | AudioMessage;
+  | AudioMessage
+  | CallMessage;

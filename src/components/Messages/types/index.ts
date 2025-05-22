@@ -8,6 +8,7 @@ import {
   MessageType,
   Sender,
   MessagesUnion,
+  CallMessage,
 } from "../../../models/message.model";
 
 export type MessageItemBaseProps = {
@@ -48,6 +49,10 @@ export type VideoMessagePropsType = {
   video: VideoMessage["content"];
 } & MessageBaseProps;
 
+export type CallMessagePropsType = {
+  callInfo?: CallMessage["content"];
+} & MessageBaseProps;
+
 export type MessageProps =
   | ({
       type: MessageType.TEXT;
@@ -66,4 +71,7 @@ export type MessageProps =
     } & ImageMessagePropsType)
   | ({
       type: MessageType.GIF;
-    } & GifMessagePropsType);
+    } & GifMessagePropsType)
+  | ({
+      type: MessageType.CALL;
+    } & CallMessagePropsType);

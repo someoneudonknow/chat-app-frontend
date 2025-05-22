@@ -10,6 +10,7 @@ import {
   MessagesUnion,
   TextMessage,
   VideoMessage,
+  CallMessage,
 } from "../../../models/message.model";
 import MessageItem from "../MessageItem";
 import { MessageProps } from "../types";
@@ -71,6 +72,12 @@ const MessageItemGroup: React.FC<MessageItemGroupPropsType> = ({
           return {
             type: data.type as MessageType.VIDEO,
             video: (data as VideoMessage).content,
+          };
+        }
+        case MessageType.CALL: {
+          return {
+            type: data.type as MessageType.CALL,
+            callInfo: (data as CallMessage).content,
           };
         }
         default:

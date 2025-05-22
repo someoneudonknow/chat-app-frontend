@@ -52,34 +52,29 @@ const Call: React.FC = () => {
   const currentUser = useSelector((state: RootState) => state.user.currentUser);
   const { currentCallId } = useCall();
 
-  // Validate required parameters and ensure call consistency
   useEffect(() => {
     const validateCall = async () => {
       try {
         setIsInitializing(true);
 
-        // Check for missing parameters
         if (!rtcToken || !rtmToken || !channel || !callId || !appId) {
           setError("Missing required call parameters");
           setIsCallActive(false);
           return;
         }
 
-        // Ensure the call in context matches the current call
         if (currentCallId && currentCallId !== callId) {
           setError("Call mismatch - this call may have been ended or replaced");
           setIsCallActive(false);
           return;
         }
 
-        // Validate call exists on server
         try {
           const response = await callService.getCallInfo(callId);
           if (response.status !== 200) {
             throw new Error("Call not found or has ended");
           }
 
-          // Check if call has already ended
           if (response.metadata.status === "ENDED") {
             setError("This call has already ended");
             setIsCallActive(false);
@@ -104,12 +99,10 @@ const Call: React.FC = () => {
     validateCall();
   }, [rtcToken, rtmToken, channel, callId, appId, currentCallId, callService]);
 
-  // Handle socket connection and events
   useEffect(() => {
     if (!socket || !currentUser || !callId || !isCallActive) return;
 
     const setupCallConnection = () => {
-      // Setup call on connection
       socket.emit(CallEventName.SETUP, {
         callId,
         user: {
@@ -120,10 +113,8 @@ const Call: React.FC = () => {
       });
     };
 
-    // Initial setup
     setupCallConnection();
 
-    // Handle socket reconnection
     const handleReconnect = () => {
       if (reconnectAttempts < 3) {
         setCallNoti("Reconnecting to call...");
@@ -135,7 +126,6 @@ const Call: React.FC = () => {
       }
     };
 
-    // Handle call events
     socket.on(CallEventName.CALL_REJECTED, ({ user }: { user: CalleeInfo }) => {
       setCallNoti(`${user.name} has rejected the call`);
     });
@@ -191,12 +181,10 @@ const Call: React.FC = () => {
       navigate("/user/chat");
     } catch (error) {
       console.error("Error ending call:", error);
-      // Even if there's an error, try to navigate back to chat
       navigate("/user/chat");
     }
   }, [callId, callees, currentUser, navigate, socket]);
 
-  // Handle browser back button or navigation away from call
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isCallActive && callId && currentUser) {
@@ -223,7 +211,6 @@ const Call: React.FC = () => {
     };
   }, [callId, currentUser, isCallActive, socket]);
 
-  // Handle navigation with history API
   useEffect(() => {
     const handlePopState = () => {
       handleCallEndClicked();
@@ -290,7 +277,6 @@ const Call: React.FC = () => {
               variant="outlined"
               onClick={() => {
                 navigate("/user/chat");
-                // Add any logic to start a new call if needed
               }}
             >
               Start New Call

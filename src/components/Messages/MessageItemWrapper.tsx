@@ -4,7 +4,6 @@ import { MessageItemBaseProps } from "./types";
 import { MessageSender } from "../../models/message.model";
 import { SmartToy } from "@mui/icons-material";
 
-// TODO: check if ai here
 const MessageItemWrapper: React.FC<
   MessageItemBaseProps & { children: ReactNode }
 > = ({
@@ -20,10 +19,6 @@ const MessageItemWrapper: React.FC<
   const direction = align === "left" ? "row" : "row-reverse";
   const senderUser = sender as MessageSender;
   const isAI = isBot || sender === "ai";
-
-  if (sender === "ai") {
-    console.log("Sender is ai");
-  }
 
   return (
     <Box

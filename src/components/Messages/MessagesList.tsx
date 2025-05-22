@@ -75,7 +75,6 @@ const MessagesList = forwardRef<InfiniteScrollRef, MessagesListPropsType>(
             const currentMessage = messages[i];
             const lastGroup = groupedResult[groupedResult.length - 1];
 
-            // Check if the current message is from the same sender and has the same bot status
             let isSameSender = false;
 
             if (
@@ -94,7 +93,6 @@ const MessagesList = forwardRef<InfiniteScrollRef, MessagesListPropsType>(
 
             const isSameBotStatus = currentMessage.isBot === lastGroup.isBot;
 
-            // Group messages only if they have the same sender and bot status
             if (isSameSender && isSameBotStatus) {
               lastGroup.messages.push(currentMessage);
             } else {
@@ -115,14 +113,12 @@ const MessagesList = forwardRef<InfiniteScrollRef, MessagesListPropsType>(
                 {sentDate}
               </Typography>
               {groupedResult.map((g, index) => {
-                // Handle AI messages differently
-                const isAIMessage = g.isBot || g.sender === "ai";
+                const isAIMessage = g?.isBot || g?.sender === "ai";
 
-                // For regular messages, determine if the current user is the sender
                 const isSender =
                   !isAIMessage &&
-                  typeof g.sender !== "string" &&
-                  currentUserId === g.sender._id;
+                  typeof g?.sender !== "string" &&
+                  currentUserId === g?.sender._id;
 
                 const align = isSender ? "right" : "left";
                 const borderRadiusEnd = "20px";
@@ -141,7 +137,6 @@ const MessagesList = forwardRef<InfiniteScrollRef, MessagesListPropsType>(
                       borderBottomLeftRadius: borderRadiusStart,
                     };
 
-                // Set special styling for AI messages
                 const messageBackground = isAIMessage
                   ? theme.palette.info[theme.palette.mode]
                   : isSender

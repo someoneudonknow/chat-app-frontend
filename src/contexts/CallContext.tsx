@@ -35,10 +35,18 @@ type CallContextType = {
   acceptCall: (payload: { callId: Call["_id"] }) => void;
   rejectCall: (callId: Call["_id"]) => void;
   endCurrentCall: () => Promise<void>;
+  startRecording: (params: {
+    uid: string;
+    channelName: string;
+  }) => Promise<boolean>;
+  pauseRecording: () => Promise<boolean>;
+  stopRecording: () => Promise<boolean>;
   isInCall: boolean;
   currentCallId: string | null;
   callStatus: "idle" | "connecting" | "connected" | "reconnecting" | "error";
   callError: string | null;
+  isRecording: boolean;
+  isRecordingPaused: boolean;
 };
 
 type CallContextProviderPropsType = {
@@ -50,10 +58,15 @@ const initVal: CallContextType = {
   acceptCall: () => {},
   rejectCall: () => {},
   endCurrentCall: async () => {},
+  startRecording: async () => false,
+  pauseRecording: async () => false,
+  stopRecording: async () => false,
   isInCall: false,
   currentCallId: null,
   callStatus: "idle",
   callError: null,
+  isRecording: false,
+  isRecordingPaused: false,
 };
 
 export const CallContext = createContext(initVal);
@@ -70,6 +83,8 @@ const CallProvider: React.FC<CallContextProviderPropsType> = ({ children }) => {
     "idle" | "connecting" | "connected" | "reconnecting" | "error"
   >("idle");
   const [callError, setCallError] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [isRecordingPaused, setIsRecordingPaused] = useState<boolean>(false);
   const reconnectAttempts = useRef<number>(0);
   const maxReconnectAttempts = 3;
 
@@ -186,11 +201,12 @@ const CallProvider: React.FC<CallContextProviderPropsType> = ({ children }) => {
     setCurrentCallId(null);
     setCallStatus("idle");
     setCallError(null);
+    setIsRecording(false);
+    setIsRecordingPaused(false);
     reconnectAttempts.current = 0;
   }, []);
 
   // TODO: fix remote cannot receive new call noti in second time
-
   const startCall = useCallback(
     ({
       rtcToken,
@@ -307,11 +323,100 @@ const CallProvider: React.FC<CallContextProviderPropsType> = ({ children }) => {
     [cleanupCall]
   );
 
+  const startRecording = useCallback(
+    async ({ uid, channelName }: { uid: string; channelName: string }) => {
+      if (!currentCallId) {
+        toast.error("No active call to record");
+        return false;
+      }
+
+      try {
+        const response = await callService.startRecording({
+          callId: currentCallId,
+          uid,
+          channelName,
+        });
+
+        if (response.status === 200) {
+          setIsRecording(true);
+          setIsRecordingPaused(false);
+          toast.success("Recording started");
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error("Error starting recording:", error);
+        toast.error("Failed to start recording");
+        return false;
+      }
+    },
+    [currentCallId]
+  );
+
+  const pauseRecording = useCallback(async () => {
+    if (!currentCallId || !isRecording) {
+      toast.error("No active recording to pause");
+      return false;
+    }
+
+    try {
+      if (isRecordingPaused) {
+        const response = await callService.resumeRecording(currentCallId);
+
+        if (response.status === 200) {
+          setIsRecordingPaused(false);
+          toast.success("Recording resumed");
+          return true;
+        }
+      } else {
+        const response = await callService.pauseRecording(currentCallId);
+
+        if (response.status === 200) {
+          setIsRecordingPaused(true);
+          toast.success("Recording paused");
+          return true;
+        }
+      }
+      return false;
+    } catch (error) {
+      console.error("Error pausing/resuming recording:", error);
+      toast.error("Failed to pause/resume recording");
+      return false;
+    }
+  }, [currentCallId, isRecording, isRecordingPaused]);
+
+  const stopRecording = useCallback(async () => {
+    if (!currentCallId || !isRecording) {
+      toast.error("No active recording to stop");
+      return false;
+    }
+
+    try {
+      const response = await callService.stopRecording(currentCallId);
+
+      if (response.status === 200) {
+        setIsRecording(false);
+        setIsRecordingPaused(false);
+        toast.success("Recording saved successfully");
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error stopping recording:", error);
+      toast.error("Failed to stop recording");
+      return false;
+    }
+  }, [currentCallId, isRecording]);
+
   const endCurrentCall = useCallback(async () => {
     if (!currentCallId || !currentUser) return;
 
     try {
       setCallStatus("idle");
+
+      if (isRecording) {
+        await stopRecording();
+      }
 
       let participants: string[] = [];
       try {
@@ -353,7 +458,15 @@ const CallProvider: React.FC<CallContextProviderPropsType> = ({ children }) => {
         navigate("/user/chat");
       }
     }
-  }, [currentCallId, currentUser, socket, navigate, cleanupCall]);
+  }, [
+    currentCallId,
+    currentUser,
+    socket,
+    navigate,
+    cleanupCall,
+    isRecording,
+    stopRecording,
+  ]);
 
   const _value = useMemo(
     () => ({
@@ -361,20 +474,30 @@ const CallProvider: React.FC<CallContextProviderPropsType> = ({ children }) => {
       acceptCall,
       rejectCall,
       endCurrentCall,
+      startRecording,
+      pauseRecording,
+      stopRecording,
       isInCall,
       currentCallId,
       callStatus,
       callError,
+      isRecording,
+      isRecordingPaused,
     }),
     [
       startCall,
       acceptCall,
       rejectCall,
       endCurrentCall,
+      startRecording,
+      pauseRecording,
+      stopRecording,
       isInCall,
       currentCallId,
       callStatus,
       callError,
+      isRecording,
+      isRecordingPaused,
     ]
   );
 

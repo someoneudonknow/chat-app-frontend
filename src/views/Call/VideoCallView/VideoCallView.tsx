@@ -7,6 +7,7 @@ import {
   useTheme,
   Alert,
   Snackbar,
+  Tooltip,
 } from "@mui/material";
 import AgoraUIKit, { layout, CallbacksInterface } from "agora-react-uikit";
 import React, { useState, useEffect, useRef } from "react";
@@ -23,7 +24,11 @@ import StopScreenShareIcon from "@mui/icons-material/StopScreenShare";
 import PeopleIcon from "@mui/icons-material/People";
 import SignalCellularAltIcon from "@mui/icons-material/SignalCellularAlt";
 import SignalCellularConnectedNoInternet0BarIcon from "@mui/icons-material/SignalCellularConnectedNoInternet0Bar";
+import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
+import PauseCircleOutlineIcon from "@mui/icons-material/PauseCircleOutline";
+import StopCircleIcon from "@mui/icons-material/StopCircle";
 import "agora-react-uikit/dist/index.css";
+import { useCall } from "../../../contexts/CallContext";
 
 // Define NodeJS.Timeout type if it's not available
 declare global {
@@ -58,6 +63,13 @@ const VideoCallView: React.FC<VideoCallViewPropsType> = ({
 }) => {
   const theme = useTheme();
   const currentUser = useSelector((state: RootState) => state.user.currentUser);
+  const {
+    startRecording,
+    pauseRecording,
+    stopRecording,
+    isRecording,
+    isRecordingPaused,
+  } = useCall();
   const [isLoading, setIsLoading] = useState(true);
   const [participantCount, setParticipantCount] = useState(1);
   const [connectionQuality, setConnectionQuality] = useState<
@@ -160,6 +172,10 @@ const VideoCallView: React.FC<VideoCallViewPropsType> = ({
       severity: "info",
     });
 
+    if (isRecording) {
+      handleStopRecording();
+    }
+
     setTimeout(() => {
       onCallEndClick && onCallEndClick();
     }, 500);
@@ -192,6 +208,89 @@ const VideoCallView: React.FC<VideoCallViewPropsType> = ({
       }
       return newCount;
     });
+  };
+
+  const handleStartRecording = async () => {
+    try {
+      setNotification({
+        message: "Starting recording...",
+        severity: "info",
+      });
+
+      const success = await startRecording({
+        uid: agoraRtcConfig.uid,
+        channelName: agoraRtcConfig.channel,
+      });
+
+      if (success) {
+        setNotification({
+          message: "Recording started",
+          severity: "success",
+        });
+      } else {
+        throw new Error("Failed to start recording");
+      }
+    } catch (error) {
+      console.error("Error starting recording:", error);
+      setNotification({
+        message: "Failed to start recording",
+        severity: "error",
+      });
+    }
+  };
+
+  const handlePauseResumeRecording = async () => {
+    try {
+      setNotification({
+        message: isRecordingPaused
+          ? "Resuming recording..."
+          : "Pausing recording...",
+        severity: "info",
+      });
+
+      const success = await pauseRecording();
+
+      if (success) {
+        setNotification({
+          message: isRecordingPaused ? "Recording resumed" : "Recording paused",
+          severity: "success",
+        });
+      } else {
+        throw new Error("Failed to pause/resume recording");
+      }
+    } catch (error) {
+      console.error("Error pausing/resuming recording:", error);
+      setNotification({
+        message: "Failed to pause/resume recording",
+        severity: "error",
+      });
+    }
+  };
+
+  const handleStopRecording = async () => {
+    try {
+      setNotification({
+        message: "Stopping recording...",
+        severity: "info",
+      });
+
+      const success = await stopRecording();
+
+      if (success) {
+      } else {
+        setNotification({
+          message: "Recording process completed",
+          severity: "info",
+        });
+      }
+    } catch (error) {
+      console.error("Error stopping recording:", error);
+      setNotification({
+        message:
+          "There was an issue with the recording, but the call can continue",
+        severity: "warning",
+      });
+    }
   };
 
   if (isLoading) {
@@ -285,6 +384,66 @@ const VideoCallView: React.FC<VideoCallViewPropsType> = ({
       >
         <PeopleIcon fontSize="small" />
         <Typography variant="body2">{participantCount}</Typography>
+      </Paper>
+
+      {/* Recording controls */}
+      <Paper
+        elevation={3}
+        sx={{
+          position: "absolute",
+          top: 70,
+          right: 20,
+          zIndex: 10,
+          padding: "6px 12px",
+          borderRadius: "20px",
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          color: "#fff",
+        }}
+      >
+        {!isRecording ? (
+          <Tooltip title="Start Recording">
+            <IconButton
+              size="small"
+              onClick={handleStartRecording}
+              sx={{ color: "#fff" }}
+            >
+              <FiberManualRecordIcon sx={{ color: "error.main" }} />
+            </IconButton>
+          </Tooltip>
+        ) : (
+          <>
+            <Tooltip
+              title={isRecordingPaused ? "Resume Recording" : "Pause Recording"}
+            >
+              <IconButton
+                size="small"
+                onClick={handlePauseResumeRecording}
+                sx={{ color: "#fff" }}
+              >
+                <PauseCircleOutlineIcon
+                  sx={{
+                    color: isRecordingPaused ? "warning.main" : "primary.main",
+                  }}
+                />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Stop Recording">
+              <IconButton
+                size="small"
+                onClick={handleStopRecording}
+                sx={{ color: "#fff" }}
+              >
+                <StopCircleIcon sx={{ color: "error.main" }} />
+              </IconButton>
+            </Tooltip>
+            <Typography variant="body2" sx={{ ml: 1 }}>
+              {isRecordingPaused ? "Paused" : "Recording"}
+            </Typography>
+          </>
+        )}
       </Paper>
 
       <AgoraUIKit
