@@ -1,12 +1,23 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import { CallMessagePropsType } from "../types";
-import { Box, Card, CardContent, Chip, Typography, Stack } from "@mui/material";
+import {
+  Box,
+  Card,
+  CardContent,
+  Chip,
+  Typography,
+  Stack,
+  Button,
+} from "@mui/material";
 import VideocamIcon from "@mui/icons-material/Videocam";
 import CallIcon from "@mui/icons-material/Call";
 import DescriptionIcon from "@mui/icons-material/Description";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import PeopleIcon from "@mui/icons-material/People";
+import LoadingButton from "../../UIs/LoadingButton";
+import { CallService } from "../../../services";
+import { BASE_URL } from "../../../constants/api-endpoints";
 
 const formatDuration = (seconds: number): string => {
   if (!seconds) return "0:00";
@@ -25,6 +36,9 @@ const formatDuration = (seconds: number): string => {
 };
 
 const CallMessage: React.FC<CallMessagePropsType> = ({ callInfo, sx }) => {
+  const [gettingSummary, setGettingSummary] = useState<boolean>(false);
+  const callServiceRef = useRef<CallService>(new CallService(BASE_URL));
+
   if (!callInfo) {
     return null;
   }
@@ -33,11 +47,13 @@ const CallMessage: React.FC<CallMessagePropsType> = ({ callInfo, sx }) => {
     callType,
     duration,
     callStartedAt,
-    callEndedAt,
+    callId,
     isRecorded,
     summary,
     participants,
   } = callInfo;
+
+  console.log({ callInfo });
 
   const startDate = new Date(callStartedAt);
   const formattedStartTime = startDate.toLocaleTimeString([], {
@@ -45,6 +61,30 @@ const CallMessage: React.FC<CallMessagePropsType> = ({ callInfo, sx }) => {
     minute: "2-digit",
   });
   const formattedDate = startDate.toLocaleDateString();
+
+  const handleGetCallRecordingSummary = async () => {
+    if (!callId) {
+      return;
+    }
+
+    console.log("Getting summary for call", callId);
+
+    setGettingSummary(true);
+
+    try {
+      const summary = await callServiceRef.current.getCallSummary(
+        callId,
+        1000,
+        "vi"
+      );
+
+      console.log({ summary });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setGettingSummary(false);
+    }
+  };
 
   return (
     <Card sx={{ width: "100%", maxWidth: 350, ...sx }}>
@@ -69,6 +109,9 @@ const CallMessage: React.FC<CallMessagePropsType> = ({ callInfo, sx }) => {
             </Box>
             {isRecorded !== undefined && (
               <Chip
+                sx={{
+                  ml: 1,
+                }}
                 size="small"
                 label={isRecorded ? "Recorded" : "Not Recorded"}
                 color={isRecorded ? "success" : "default"}
@@ -107,6 +150,16 @@ const CallMessage: React.FC<CallMessagePropsType> = ({ callInfo, sx }) => {
               </Typography>
             </Box>
           )}
+
+          <LoadingButton
+            loading={gettingSummary}
+            onClick={handleGetCallRecordingSummary}
+            size="small"
+            variant="contained"
+            color="primary"
+          >
+            Get call recording summary
+          </LoadingButton>
 
           {summary && (
             <Box sx={{ mt: 1 }}>
