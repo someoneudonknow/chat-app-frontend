@@ -6,7 +6,7 @@ import { Search } from "@mui/icons-material";
 const GroupActions = () => {
   return (
     <Stack direction="row" justifyContent="space-around">
-      <LabelIconButton label="Search" icon={<Search />} />
+      {/* <LabelIconButton label="Search" icon={<Search />} /> */}
     </Stack>
   );
 };

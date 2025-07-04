@@ -41,11 +41,11 @@ const InboxActions: React.FC<InboxActionsPropsType> = ({ conservation }) => {
         label="View Profile"
         icon={<Visibility />}
       />
-      <LabelIconButton
+      {/* <LabelIconButton
         onClick={handleOpenSearchMessageBox}
         label="Search"
         icon={<Search />}
-      />
+      /> */}
     </Stack>
   );
 };

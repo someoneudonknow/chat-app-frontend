@@ -145,37 +145,6 @@ const RegisterForm: React.FC = () => {
             </Link>
           </Typography>
         </Grid>
-        <Grid mt={2} item xs={12}>
-          <Divider>
-            <strong>Register</strong> with others
-          </Divider>
-        </Grid>
-        <Grid item xs={12}>
-          <LoadingButton
-            startIcon={<Google />}
-            sx={{ height: "40px", fontWeight: "bold" }}
-            variant="contained"
-            fullWidth
-            onClick={handleRegisterWithGoogle}
-            type="button"
-            loading={isLoading}
-          >
-            Register with google
-          </LoadingButton>
-        </Grid>
-        <Grid item xs={12}>
-          <LoadingButton
-            startIcon={<FacebookOutlined />}
-            sx={{ height: "40px", fontWeight: "bold" }}
-            variant="contained"
-            fullWidth
-            onClick={handleLoginRegisterFacebook}
-            type="button"
-            loading={isLoading}
-          >
-            Register with Facebook
-          </LoadingButton>
-        </Grid>
       </Grid>
     </Box>
   );

@@ -118,20 +118,6 @@ const LoginForm: React.FC = () => {
             helperText={errors?.password?.message}
           />
         </Grid>
-        <Grid item xs={12}>
-          <FormGroup>
-            <FormControlLabel
-              label="Remember me?"
-              control={
-                <Checkbox
-                  checked={isRememberMe}
-                  onChange={handleRememberMeCheckChanged}
-                  color="primary"
-                />
-              }
-            />
-          </FormGroup>
-        </Grid>
         <Grid item mt={3} xs={12}>
           <LoadingButton
             sx={{ height: "40px", fontWeight: "bold" }}
@@ -162,37 +148,6 @@ const LoginForm: React.FC = () => {
           >
             <Link onClick={handleForgotPassword}>Forgot password?</Link>
           </Typography>
-        </Grid>
-        <Grid mt={2} item xs={12}>
-          <Divider>
-            <strong>Login</strong> with others
-          </Divider>
-        </Grid>
-        <Grid item xs={12}>
-          <LoadingButton
-            startIcon={<Google />}
-            sx={{ height: "40px", fontWeight: "bold" }}
-            variant="contained"
-            fullWidth
-            onClick={handleLoginWithGoogle}
-            type="button"
-            loading={isLoading}
-          >
-            Login with Google
-          </LoadingButton>
-        </Grid>
-        <Grid item xs={12}>
-          <LoadingButton
-            startIcon={<FacebookOutlined />}
-            sx={{ height: "40px", fontWeight: "bold" }}
-            variant="contained"
-            fullWidth
-            onClick={handleLoginWithFacebook}
-            type="button"
-            loading={isLoading}
-          >
-            Login with Facebook
-          </LoadingButton>
         </Grid>
       </Grid>
     </Box>
